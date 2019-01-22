@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Plugin Start
  * Author: Vladimir
- * Description: Get data from Inflow
+ * Description: API for create new plugin
  * Version: 1.0
  */
 
