@@ -28,21 +28,27 @@ class Plugin
 		if (is_array($routers)) {
 			new Route($routers);
 		}
-		
+
+		if (is_admin()) {
+			$this->initAdmin();
+		} else {
+			$this->initFront();
+		}
+
 	}
-	
-	public function initAdmin ()
+
+	public function initAdmin()
 	{
 		AdminPage::init();
 
 		$this->action_links();
 	}
-	
-	public function initFront ()
+
+	public function initFront()
 	{
-	    
+
 	}
-	
+
 
 	static function outJSON($data, $die = true)
 	{
@@ -81,7 +87,7 @@ class Plugin
 	{
 		add_filter('plugin_action_links_' . Settings::$plugin_basename, function ($links) {
 			$items = Settings::get('action_links');
-			
+
 			if (empty($items)) {
 				return $links;
 			}
@@ -106,6 +112,15 @@ class Plugin
 
 			return $links;
 		});
+	}
+
+	function registerMedia($items)
+	{
+		if (!empty($items['js'])) {
+			foreach ((array)$items['js'] as $js) {
+				wp_register_script(Settings::$plugin_key . '-' . basename($js), Settings::$plugin_url . '/' . $js, [], Settings::$version);
+			}
+		}
 	}
 
 
