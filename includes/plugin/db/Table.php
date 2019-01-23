@@ -1,8 +1,9 @@
 <?php
 
-namespace WPPluginStart\Plugin;
+namespace WPPluginStart\Plugin\DB;
+use WPPluginStart\Plugin\Settings;
 
-class DbTable
+class Table
 {
 
 	public static function removeAll()

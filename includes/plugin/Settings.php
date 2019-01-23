@@ -10,6 +10,7 @@ class Settings
 	public $settings_file_name = 'settings.php';
 	static $plugin_dir = '';
 	static $plugin_key = '';
+	static $plugin_basename = '';
 	static $plugin_template = 'template';
 	static $plugin_main_file = '';
 	static $plugin_url = '';
@@ -24,11 +25,14 @@ class Settings
 		self::$plugin_key = basename($plugin_main_file, '.php');
 		self::$plugin_url = plugin_dir_url($plugin_main_file);
 
+		self::$plugin_basename = plugin_basename($plugin_main_file);
+
 		if ($settings_file_name !== null) {
 			$this->settings_file_name = $settings_file_name;
 		}
 
 		self::$settings = $this->loadFromFile();
+		
 	}
 
 //	static $instance = null;

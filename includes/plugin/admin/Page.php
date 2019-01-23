@@ -3,13 +3,13 @@
  * Create: Vladimir
  */
 
-namespace WPPluginStart\Plugin;
+namespace WPPluginStart\Plugin\Admin;
 
 use WPPluginStart\Plugin;
+use WPPluginStart\Plugin\Settings;
 
-class AdminPage
+class Page
 {
-	private static $pages = [];
 	private static $path_to_template = 'admin/page';
 	private static $default = [
 		'parent' => false,
@@ -29,6 +29,10 @@ class AdminPage
 
 	function __construct($settings)
 	{
+//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($settings, true), 3, 'UTF-8');
+//		echo '</pre>';
+		
 		if (empty($settings)) {
 		    return;
 		}
@@ -54,6 +58,10 @@ class AdminPage
 
 	function add()
 	{
+//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($this->settings, true), 3, 'UTF-8');
+//		echo '</pre>';
+		
 		if (!empty($this->settings['parent'])) {
 			add_submenu_page(
 				$this->settings['parent'],
@@ -85,6 +93,10 @@ class AdminPage
 	static function addAll()
 	{
 		$pages = Settings::get('pages', []);
+//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($pages, true), 3, 'UTF-8');
+//		echo '</pre>';
+		
 		if (empty($pages)) {
 		    return;
 		}
@@ -96,7 +108,9 @@ class AdminPage
 	static function generateItem($key, $parent = false, $add_plugin_key = true)
 	{
 		$args = self::$default;
-		$args['parent'] = $parent;
+		if ($parent) {
+			$args['parent'] = self::parentSlug($parent, $add_plugin_key);
+		}
 		
 		if (is_scalar($key)) {
 			$args['slug'] = $key;
@@ -105,9 +119,14 @@ class AdminPage
 			$key = $args['slug'];
 		}
 		
-		$args['slug'] = sanitize_key($args['slug']);
+		$slug = self::pageSlug($args['slug'], false);
+		$slug_and_key = $slug;
 		
-		if (empty($args['slug'])) {
+		if ($add_plugin_key) {
+			$slug_and_key = self::pageSlug($args['slug'], $add_plugin_key);
+		}
+
+		if (empty($slug)) {
 		    return false;
 		}
 		
@@ -124,14 +143,34 @@ class AdminPage
 		}
 
 		if (empty($args['template'])) {
-			$args['template'] = Plugin::template(self::$path_to_template . '/' . $args['slug'] . '.php', false);
+			$args['template'] = Plugin::template(self::$path_to_template . '/' . $slug . '.php', false);
 		}
-		
-		if ($add_plugin_key) {
-			$args['slug'] = Settings::$plugin_key . '--' . $args['slug'];
-		}
+
+		$args['slug'] = $slug_and_key;
 
 		return $args;
 	}
+	
+	static function pageSlug ($slug, $add_plugin_key = true)
+	{
+		$slug = preg_replace('#\s+#', '-', $slug);
+		$slug = sanitize_key($slug);
 
+		if ($add_plugin_key) {
+			$slug = Settings::$plugin_key . '--' . $slug;
+		}
+		
+		return $slug;
+	}
+	
+	static function parentSlug ($slug,  $add_plugin_key = true)
+	{
+	    if (substr($slug, -4) === '.php') {
+	        return $slug;
+	    }
+	    
+	    return self::pageSlug($slug,  $add_plugin_key);
+	}
+	
+	
 }

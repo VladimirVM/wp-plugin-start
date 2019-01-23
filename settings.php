@@ -1,8 +1,9 @@
 <?php
-
 /**
+ * Plugin Settings
  * Create: Vladimir
  */
+
 $settings = [
 	'tables' => [
 		/*
@@ -21,14 +22,21 @@ $settings = [
 	'routers' => [
 //        'front_end_routs' => WPPluginStart\Plugin\Route::generateItem('front_end_routs_path'),
 	],
+	'action_links' => [
+		'Some html Data',
+		['link' => '#link_to', 'title' => 'Settings', 'target' => true]
+	],
 	'pages' => [
-		WPPluginStart\Plugin\AdminPage::generateItem([
-			'menu' => 'Plugin Settings',
-			'key' => 'plugin_settings',
+		WPPluginStart\Plugin\Admin\Page::generateItem([
+			'menu' => 'Plugin\Admin\Page',
+			'slug' => 'plugin_settings',
 			'blocks' => [
 				'settings_form'
 			],
 		]),
+		WPPluginStart\Plugin\Admin\Page::generateItem('Plugin\Admin\Page 2'),
+		WPPluginStart\Plugin\Admin\Page::generateItem('Plugin\Admin\Page 2 sub', 'Plugin\Admin\Page 2'),
+		WPPluginStart\Plugin\Admin\Page::generateItem('Plugin\Admin\Page tools.php sub', 'tools.php'),
 	],
 	'blocks' => [
 		'settings_form' => [

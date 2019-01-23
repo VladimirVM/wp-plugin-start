@@ -36,7 +36,7 @@ class Control
             add_option($key, $value, '', in_array($key, $autoload));
         }
 
-        return DbTable::createAll();
+        return DB\Table::createAll();
     }
 
     public static function deactivation()
@@ -50,7 +50,7 @@ class Control
         foreach ($options as $key => $value) {
             delete_option($key);
         }
-        return DbTable::removeAll();
+        return DB\Table::removeAll();
     }
 
 }

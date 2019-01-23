@@ -18,15 +18,13 @@ class Route
 	 * 'controller' => 'file-name',
 	 * ]]
 	 */
-	var $items = [];
-	var $default_priority = 'top';
-	private $plugin_dir = '';
-	var $plugin_controller_dir = '/controllers';
-	var $theme_template_dir = '';
+	public $items = [];
+	public $default_priority = 'top';
+	public $plugin_controller_dir = 'controllers';
+	public $theme_template_dir = '';
 
 	function __construct($items = null)
 	{
-		$this->plugin_dir = Settings::$plugin_dir;
 		$this->addItems($items);
 		add_action('init', [$this, 'add_rewrite_rule'], 10, 0);
 		add_filter('query_vars', [$this, 'query_vars']);
@@ -91,7 +89,7 @@ class Route
 
 	function getController($file_name)
 	{
-		$controller = $this->plugin_dir . $this->plugin_controller_dir . '/' . $file_name;
+		$controller = Settings::$plugin_dir . '/' . $this->plugin_controller_dir . '/' . $file_name;
 
 		if (is_file($controller)) {
 			return $controller;

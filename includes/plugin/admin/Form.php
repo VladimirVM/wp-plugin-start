@@ -3,10 +3,10 @@
  * Create: Vladimir
  */
 
-namespace WPPluginStart\Plugin;
+namespace WPPluginStart\Plugin\Admin;
 
 
-class AdminForm
+class Form
 {
 
 
