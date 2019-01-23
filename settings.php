@@ -26,6 +26,16 @@ $settings = [
 		'Some html Data',
 		['link' => '#link_to', 'title' => 'Settings', 'target' => true]
 	],
+	'media' => [
+		'admin' => [
+			'js' => [],
+			'css' => [],
+		],
+		'front' => [
+			'js' => [],
+			'css' => [],
+		],
+	],
 	'pages' => [
 		WPPluginStart\Plugin\Admin\Page::generateItem([
 			'menu' => 'Plugin\Admin\Page',

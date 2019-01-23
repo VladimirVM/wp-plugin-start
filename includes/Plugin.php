@@ -5,7 +5,7 @@
 
 namespace WPPluginStart;
 
-use WPPluginStart\Plugin\Admin\Page;
+use WPPluginStart\Plugin\Admin\Page as AdminPage;
 use WPPluginStart\Plugin\Route;
 use WPPluginStart\Plugin\Settings;
 use WPPluginStart\Plugin\Control;
@@ -28,11 +28,21 @@ class Plugin
 		if (is_array($routers)) {
 			new Route($routers);
 		}
-
-		Page::init();
+		
+	}
+	
+	public function initAdmin ()
+	{
+		AdminPage::init();
 
 		$this->action_links();
 	}
+	
+	public function initFront ()
+	{
+	    
+	}
+	
 
 	static function outJSON($data, $die = true)
 	{
