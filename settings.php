@@ -27,14 +27,10 @@ $settings = [
 		['link' => '#link_to', 'title' => 'Settings', 'target' => true]
 	],
 	'media' => [
-		'admin' => [
-			'js' => [],
-			'css' => [],
-		],
-		'front' => [
-			'js' => [],
-			'css' => [],
-		],
+		'js' => [],
+		'css' => [],
+		'admin' => [],
+		'front' => [],
 	],
 	'pages' => [
 		WPPluginStart\Plugin\Admin\Page::generateItem([
