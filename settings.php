@@ -1,8 +1,11 @@
 <?php
 /**
  * Plugin Settings
- * Create: Vladimir
  */
+
+use \WPPluginStart\Plugin\Settings;
+use \WPPluginStart\Plugin\Admin\Page as AdminPage;
+
 
 $settings = [
 	'tables' => [
@@ -27,22 +30,34 @@ $settings = [
 		['link' => '#link_to', 'title' => 'Settings', 'target' => true]
 	],
 	'media' => [
-		'js' => [],
-		'css' => [],
-		'admin' => [],
+		'js' => [
+			Settings::$plugin_key . '-admin-js' => 'admin.js',
+			['file' => 'front.js', 'key' => Settings::$plugin_key . '-front-js', 'deps' => ['jquery']]
+		],
+		'css' => [
+
+		],
+		'admin' => function () {
+			if (!AdminPage::isPluginPage()) {
+				return [];
+			}
+			return [
+				Settings::$plugin_key . '-admin-js',
+			];
+		},
 		'front' => [],
 	],
 	'pages' => [
-		WPPluginStart\Plugin\Admin\Page::generateItem([
+		AdminPage::generateItem([
 			'menu' => 'Plugin\Admin\Page',
 			'slug' => 'plugin_settings',
 			'blocks' => [
 				'settings_form'
 			],
 		]),
-		WPPluginStart\Plugin\Admin\Page::generateItem('Plugin\Admin\Page 2'),
-		WPPluginStart\Plugin\Admin\Page::generateItem('Plugin\Admin\Page 2 sub', 'Plugin\Admin\Page 2'),
-		WPPluginStart\Plugin\Admin\Page::generateItem('Plugin\Admin\Page tools.php sub', 'tools.php'),
+		AdminPage::generateItem('Plugin\Admin\Page 2'),
+		AdminPage::generateItem('Plugin\Admin\Page 2 sub', 'Plugin\Admin\Page 2'),
+		AdminPage::generateItem('Plugin\Admin\Page tools.php sub', 'tools.php'),
 	],
 	'blocks' => [
 		'settings_form' => [

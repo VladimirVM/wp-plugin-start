@@ -1,8 +1,4 @@
 <?php
-/**
- * Create: Vladimir
- */
-
 namespace WPPluginStart\Plugin\Admin;
 
 use WPPluginStart\Plugin;
@@ -21,6 +17,7 @@ class Page
 		'icon' => '',
 		'position' => null,
 	];
+	static $hooks = [];
 	/**
 	 * @var array self::$default
 	 */
@@ -29,9 +26,6 @@ class Page
 
 	function __construct($settings)
 	{
-//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
-//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($settings, true), 3, 'UTF-8');
-//		echo '</pre>';
 		
 		if (empty($settings)) {
 		    return;
@@ -58,12 +52,9 @@ class Page
 
 	function add()
 	{
-//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
-//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($this->settings, true), 3, 'UTF-8');
-//		echo '</pre>';
 		
 		if (!empty($this->settings['parent'])) {
-			add_submenu_page(
+			self::$hooks[$this->settings['slug']] = add_submenu_page(
 				$this->settings['parent'],
 				$this->settings['page'],
 				$this->settings['menu'],
@@ -72,7 +63,7 @@ class Page
 				$this->settings['function']
 			);
 		} else {
-			add_menu_page(
+			self::$hooks[$this->settings['slug']] = add_menu_page(
 				$this->settings['page'],
 				$this->settings['menu'],
 				$this->settings['capability'],
@@ -82,6 +73,8 @@ class Page
 				$this->settings['position']
 			);
 		}
+		
+		
 	}
 
 
@@ -93,9 +86,6 @@ class Page
 	static function addAll()
 	{
 		$pages = Settings::get('pages', []);
-//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
-//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($pages, true), 3, 'UTF-8');
-//		echo '</pre>';
 		
 		if (empty($pages)) {
 		    return;
@@ -170,6 +160,15 @@ class Page
 	    }
 	    
 	    return self::pageSlug($slug,  $add_plugin_key);
+	}
+
+	static function isPluginPage ()
+	{
+	    $page = filter_input(INPUT_GET, 'page');
+	    if (isset(self::$hooks[$page])) {
+	        return self::$hooks[$page];
+	    }
+	    return false;
 	}
 	
 	

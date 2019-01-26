@@ -1,14 +1,11 @@
 <?php
-/**
- * Create: Vladimir
- */
-
 namespace WPPluginStart;
 
 use WPPluginStart\Plugin\Admin\Page as AdminPage;
 use WPPluginStart\Plugin\Route;
 use WPPluginStart\Plugin\Settings;
 use WPPluginStart\Plugin\Control;
+use WPPluginStart\Plugin\Media;
 
 class Plugin
 {
@@ -29,6 +26,8 @@ class Plugin
 			new Route($routers);
 		}
 
+		Media::register(Settings::get('media', []));
+		
 		if (is_admin()) {
 			$this->initAdmin();
 		} else {
@@ -44,7 +43,6 @@ class Plugin
 		// @todo add check on plugin list
 		$this->action_links();
 		
-		$this->registerMedia(Settings::get('media', []));
 	}
 
 	public function initFront()
@@ -75,7 +73,7 @@ class Plugin
 
 		if ($template) {
 			foreach ((array)$names as $name) {
-				$file = Settings::$plugin_template . '/' . $name;
+				$file = Settings::$plugin_template_dir . '/' . $name;
 				if (is_file($file)) {
 					$template = $file;
 					break;
@@ -117,53 +115,6 @@ class Plugin
 		});
 	}
 
-	function registerMedia($items)
-	{
-
-		$ver = Settings::$version;
-
-		if (!empty($items['css'])) {
-			$css_url = Settings::$plugin_url . '/media/css/';
-			foreach ($items['css'] as $key => $css) {
-				if (is_string($css)) {
-					$css = ['file' => $css];
-				}
-				$css += ['ver' => $ver, 'deps' => [], 'media' => 'all'];
-				if (empty($css['file'])) {
-					continue;
-				}
-				if (!is_numeric($key)) {
-					$css['key'] = $key;
-				}
-				if (empty($css['key'])) {
-					$css['key'] = sanitize_key(Settings::$plugin_key . '--' . str_replace('/', '--', $css['file']));
-				}
-				wp_register_style($css['key'], $css_url . $css['file'], $css['deps'], $css['ver'], $css['media']);
-			}
-		}
-
-		if (!empty($items['js'])) {
-			$js_url = Settings::$plugin_url . '/media/js/';
-			foreach ($items['js'] as $key => $js) {
-				if (is_string($js)) {
-					$js = ['file' => $js];
-				}
-				$js += ['ver' => $ver, 'deps' => [], 'in_footer' => true];
-				if (empty($js['file'])) {
-					continue;
-				}
-				if (!is_numeric($key)) {
-					$js['key'] = $key;
-				}
-				if (empty($js['key'])) {
-					$js['key'] = sanitize_key(Settings::$plugin_key . '--' . str_replace('/', '--', $js['file']));
-				}
-				wp_register_script($js['key'], $js_url . $js['file'], $js['deps'], $js['ver'], $js['in_footer']);
-			}
-		}
-
-
-	}
 
 
 }

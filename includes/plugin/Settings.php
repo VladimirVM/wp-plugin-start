@@ -1,8 +1,4 @@
 <?php
-/**
- * Create: Vladimir
- */
-
 namespace WPPluginStart\Plugin;
 
 class Settings
@@ -11,9 +7,10 @@ class Settings
 	static $plugin_dir = '';
 	static $plugin_key = '';
 	static $plugin_basename = '';
-	static $plugin_template = 'template';
+	static $plugin_template_dir = 'template';
 	static $plugin_main_file = '';
 	static $plugin_url = '';
+	static $plugin_media_url = 'media';
 	static $version = 1.0;
 	static $settings = [];
 	static $options = [];
@@ -21,10 +18,11 @@ class Settings
 	public function __construct($plugin_main_file, $version = 1.0, $settings_file_name = null)
 	{
 		self::$plugin_dir = dirname($plugin_main_file);
-		self::$plugin_template = self::$plugin_dir . '/' . self::$plugin_template;
+		self::$plugin_template_dir = self::$plugin_dir . '/' . self::$plugin_template_dir;
 		self::$plugin_main_file = $plugin_main_file;
 		self::$plugin_key = basename($plugin_main_file, '.php');
 		self::$plugin_url = plugin_dir_url($plugin_main_file);
+		self::$plugin_media_url = self::$plugin_url . '/' . self::$plugin_media_url;
 		self::$version = $version;
 
 		self::$plugin_basename = plugin_basename($plugin_main_file);

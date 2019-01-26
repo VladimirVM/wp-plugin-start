@@ -1,8 +1,4 @@
 <?php
-/**
- * Create: Vladimir
- */
-
 namespace WPPluginStart;
 
 /**
