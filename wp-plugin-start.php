@@ -4,7 +4,7 @@
  * Author: Vladimir
  * Description: API for create new plugin
  * Version: 0.1
- * 
+ *
  * Plugin URI:   https://example.com/plugins/the-basics/
  * Author URI:   https://author.example.com/
  * License:      GPL2
@@ -21,7 +21,7 @@ WPPluginStart\autoloader([
 //    'ClassName' => __DIR__ . '/path/to/file'
 ]);
 
-new WPPluginStart\Plugin(__FILE__, 0.1);
+new WPPluginStart\Plugin(__FILE__, ['version' => 0.1]);
 
 
 

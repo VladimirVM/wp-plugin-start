@@ -165,6 +165,7 @@ class Page
 	static function isPluginPage ()
 	{
 	    $page = filter_input(INPUT_GET, 'page');
+	    
 	    if (isset(self::$hooks[$page])) {
 	        return self::$hooks[$page];
 	    }

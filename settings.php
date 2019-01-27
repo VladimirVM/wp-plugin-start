@@ -32,20 +32,17 @@ $settings = [
 	],
 	'media' => [
 		'js' => [
-			Media::key('admin.js') => 'admin.js',
-			['file' => 'front.js', 'key' => Media::key('front.js'), 'deps' => ['jquery'], 'ver' => 1, 'footer' => true]
+			'admin.js' => 'admin.js',
+			['file' => 'front.js', 'key' => (Settings::$plugin_key . '-front-js'), 'deps' => ['jquery'], 'ver' => 1, 'footer' => true]
 		],
 		'css' => [
-
+			'admin.css' => 'admin.css',
+			['file' => 'front.css', 'key' => Media::key('front.css'), 'deps' => ['jquery'], 'ver' => 1, 'media' => 'all']
 		],
-		'admin' => function () {
-			if (!AdminPage::isPluginPage()) {
-				return [];
-			}
-			return [
-				Settings::$plugin_key . '-admin-js',
-			];
-		},
+		'admin' => [
+			'js' => [Media::key('admin.js')],
+			'css' => [Media::key('admin.css')],
+		],
 		'front' => [],
 	],
 	'pages' => [
@@ -55,6 +52,8 @@ $settings = [
 			'blocks' => [
 				'settings_form'
 			],
+			'css' => [],
+			'js' => [],
 		]),
 		AdminPage::generateItem('Plugin\Admin\Page 2'),
 		AdminPage::generateItem('Plugin\Admin\Page 2 sub', 'Plugin\Admin\Page 2'),

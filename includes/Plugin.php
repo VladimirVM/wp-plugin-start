@@ -10,9 +10,9 @@ use WPPluginStart\Plugin\Media;
 class Plugin
 {
 
-	public function __construct($main_file)
+	public function __construct($main_file, $config = [])
 	{
-		new Settings($main_file);
+		new Settings($main_file, $config);
 		new Control();
 
 		$this->init();
@@ -40,14 +40,25 @@ class Plugin
 	{
 		AdminPage::init();
 
-		// @todo add check on plugin list
 		$this->action_links();
+		
+		$media = Settings::get('media', []);
+		
+		if (!empty($media['admin'])) {
+			
+			Media::init($media['admin'], 'admin');
+			
+		}
 		
 	}
 
 	public function initFront()
 	{
+		$media = Settings::get('media', []);
 
+		if (!empty($media['front'])) {
+			Media::init($media['front'], 'front');
+		}
 	}
 
 

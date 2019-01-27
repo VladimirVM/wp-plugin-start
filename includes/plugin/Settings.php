@@ -7,29 +7,45 @@ class Settings
 	static $plugin_dir = '';
 	static $plugin_key = '';
 	static $plugin_basename = '';
-	static $plugin_template_dir = 'template';
+	static $plugin_template_folder = 'template';
+	static $plugin_template_url = '';
+	static $plugin_template_dir = '';
 	static $plugin_main_file = '';
 	static $plugin_url = '';
-	static $plugin_media_url = 'media';
+	static $plugin_media_folder = 'media';
+	static $plugin_media_url = '';
+	static $plugin_media_dir = '';
 	static $version = 1.0;
 	static $settings = [];
 	static $options = [];
 
-	public function __construct($plugin_main_file, $version = 1.0, $settings_file_name = null)
+	public function __construct($plugin_main_file, $config = [], $settings_file_name = null)
 	{
 		self::$plugin_dir = dirname($plugin_main_file);
-		self::$plugin_template_dir = self::$plugin_dir . '/' . self::$plugin_template_dir;
 		self::$plugin_main_file = $plugin_main_file;
 		self::$plugin_key = basename($plugin_main_file, '.php');
-		self::$plugin_url = plugin_dir_url($plugin_main_file);
-		self::$plugin_media_url = self::$plugin_url . '/' . self::$plugin_media_url;
-		self::$version = $version;
+		self::$plugin_url = rtrim(plugin_dir_url($plugin_main_file), '\\/');
+		
+		if (!empty($config)) {
+		    foreach ($config as $key => $value) {
+		    	if (property_exists(__CLASS__, $key)) {
+				    self::$$key = $value;
+		    	}
+		    }
+		}
 
+		self::$plugin_template_dir = self::$plugin_dir . '/' . self::$plugin_template_folder;
+		self::$plugin_template_url = self::$plugin_url . '/' . self::$plugin_template_folder;
+		self::$plugin_media_url = self::$plugin_url . '/' . self::$plugin_media_folder;
+		self::$plugin_media_dir = self::$plugin_dir . '/' . self::$plugin_media_folder;
+		
 		self::$plugin_basename = plugin_basename($plugin_main_file);
 
 		if ($settings_file_name !== null) {
 			$this->settings_file_name = $settings_file_name;
 		}
+		
+		
 
 		self::$settings = $this->loadFromFile();
 		
