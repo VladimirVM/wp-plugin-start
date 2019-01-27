@@ -25,7 +25,7 @@ class Media
 					$css['key'] = $key;
 				}
 				if (empty($css['key'])) {
-					$css['key'] = sanitize_key(Settings::$plugin_key . '--' . str_replace('/', '--', $css['file']));
+					$css['key'] = self::key($css['file']);
 				}
 				wp_register_style($css['key'], $css_url . $css['file'], $css['deps'], $css['ver'], $css['media']);
 			}
@@ -45,7 +45,7 @@ class Media
 					$js['key'] = $key;
 				}
 				if (empty($js['key'])) {
-					$js['key'] = sanitize_key(Settings::$plugin_key . '--' . str_replace('/', '--', $js['file']));
+					$js['key'] = self::key($js['file']);
 				}
 				wp_register_script($js['key'], $js_url . $js['file'], $js['deps'], $js['ver'], $js['in_footer']);
 			}
@@ -53,5 +53,12 @@ class Media
 
 
 	}
+	
+	static function key ($file)
+	{
+		return sanitize_key(Settings::$plugin_key . '--' . str_replace('/', '--', $file));
+
+	}
+	
 
 }

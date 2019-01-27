@@ -4,6 +4,7 @@
  */
 
 use \WPPluginStart\Plugin\Settings;
+use \WPPluginStart\Plugin\Media;
 use \WPPluginStart\Plugin\Admin\Page as AdminPage;
 
 
@@ -31,8 +32,8 @@ $settings = [
 	],
 	'media' => [
 		'js' => [
-			Settings::$plugin_key . '-admin-js' => 'admin.js',
-			['file' => 'front.js', 'key' => Settings::$plugin_key . '-front-js', 'deps' => ['jquery']]
+			Media::key('admin.js') => 'admin.js',
+			['file' => 'front.js', 'key' => Media::key('front.js'), 'deps' => ['jquery'], 'ver' => 1, 'footer' => true]
 		],
 		'css' => [
 
