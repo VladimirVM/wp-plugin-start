@@ -16,6 +16,8 @@ class Page
 		'function' => null,
 		'icon' => '',
 		'position' => null,
+		'css' => [],
+		'js' => [],
 	];
 	static $hooks = [];
 	/**
@@ -43,10 +45,22 @@ class Page
 			$this->settings['function'] = [$this, 'content'];
 		}
 	}
+	
+	function media ()
+	{
+	    $media = [
+	    	'css' => $this->settings['css'],
+	    	'js' => $this->settings['js'],
+	    ];
+	    
+	    Plugin\Media::init($media, 'admin');
+	}
+	
 
 
 	function content()
 	{
+
 
 	}
 
@@ -54,7 +68,7 @@ class Page
 	{
 		
 		if (!empty($this->settings['parent'])) {
-			self::$hooks[$this->settings['slug']] = add_submenu_page(
+			$hook = add_submenu_page(
 				$this->settings['parent'],
 				$this->settings['page'],
 				$this->settings['menu'],
@@ -63,7 +77,7 @@ class Page
 				$this->settings['function']
 			);
 		} else {
-			self::$hooks[$this->settings['slug']] = add_menu_page(
+			$hook = add_menu_page(
 				$this->settings['page'],
 				$this->settings['menu'],
 				$this->settings['capability'],
@@ -73,9 +87,21 @@ class Page
 				$this->settings['position']
 			);
 		}
+
+		self::$hooks[$this->settings['slug']] = $hook;
 		
-		
+		if ($this->isLoad()) {
+		    $this->media();
+		}
 	}
+	
+	function isLoad ()
+	{
+		$page = filter_input(INPUT_GET, 'page');
+
+		return ($page === $this->settings['slug']);
+	}
+	
 
 
 	static function init()

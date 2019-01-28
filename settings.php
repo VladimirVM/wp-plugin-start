@@ -40,8 +40,8 @@ $settings = [
 			['file' => 'front.css', 'key' => Media::key('front.css'), 'deps' => ['jquery'], 'ver' => 1, 'media' => 'all']
 		],
 		'admin' => [
-			'js' => [Media::key('admin.js')],
-			'css' => [Media::key('admin.css')],
+			'css' => [],
+			'js' => [],
 		],
 		'front' => [],
 	],
@@ -52,8 +52,8 @@ $settings = [
 			'blocks' => [
 				'settings_form'
 			],
-			'css' => [],
-			'js' => [],
+			'js' => [Media::key('admin.js')],
+			'css' => [Media::key('admin.css')],
 		]),
 		AdminPage::generateItem('Plugin\Admin\Page 2'),
 		AdminPage::generateItem('Plugin\Admin\Page 2 sub', 'Plugin\Admin\Page 2'),
