@@ -1,4 +1,5 @@
 <?php
+
 namespace WPPluginStart;
 
 use WPPluginStart\Plugin\Admin\Page as AdminPage;
@@ -26,8 +27,7 @@ class Plugin
 			new Route($routers);
 		}
 
-		Media::register(Settings::get('media', []));
-		
+
 		if (is_admin()) {
 			$this->initAdmin();
 		} else {
@@ -41,15 +41,14 @@ class Plugin
 		AdminPage::init();
 
 		$this->action_links();
-		
+
 		$media = Settings::get('media', []);
-		
+
 		if (!empty($media['admin'])) {
-			
+			Media::register($media, 'admin');
 			Media::init($media['admin'], 'admin');
-			
 		}
-		
+
 	}
 
 	public function initFront()
@@ -57,6 +56,7 @@ class Plugin
 		$media = Settings::get('media', []);
 
 		if (!empty($media['front'])) {
+			Media::register($media, 'front');
 			Media::init($media['front'], 'front');
 		}
 	}
@@ -125,7 +125,6 @@ class Plugin
 			return $links;
 		});
 	}
-
 
 
 }

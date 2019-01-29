@@ -56,12 +56,22 @@ class Page
 	    Plugin\Media::init($media, 'admin');
 	}
 	
+	function block () {
+		if (isset($this->settings['blocks'])) {
+		    Option::init($this->settings['slug'], $this->settings['blocks']);
+		}
+	}
 
 
 	function content()
 	{
-
-
+		?>
+		<form method="post" action="options.php">
+		<?php
+		Option::renderOnPage();
+		?>
+		</form>
+		<?php
 	}
 
 	function add()
@@ -92,6 +102,7 @@ class Page
 		
 		if ($this->isLoad()) {
 		    $this->media();
+		    $this->block();
 		}
 	}
 	

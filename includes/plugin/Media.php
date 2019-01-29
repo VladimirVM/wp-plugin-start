@@ -32,26 +32,28 @@ class Media
 	}
 
 
-	static function register($items)
+	static function register($items, $type)
 	{
-
-		if (!empty($items['css'])) {
-			foreach ($items['css'] as $key => $css) {
-				$args = self::prepare($css, $key, 'css');
-				if ($args) {
-					wp_register_style($args['key'], $args['file'], $args['deps'], $args['ver'], $args['media']);
+		self::init(function () use ($items) {
+			if (!empty($items['css'])) {
+				foreach ($items['css'] as $key => $css) {
+					$args = self::prepare($css, $key, 'css');
+					if ($args) {
+						wp_register_style($args['key'], $args['file'], $args['deps'], $args['ver'], $args['media']);
+					}
 				}
 			}
-		}
 
-		if (!empty($items['js'])) {
-			foreach ($items['js'] as $key => $js) {
-				$args = self::prepare($js, $key, 'js');
-				if ($args) {
-					wp_register_script($args['key'], $args['file'], $args['deps'], $args['ver'], $args['in_footer']);
+			if (!empty($items['js'])) {
+				foreach ($items['js'] as $key => $js) {
+					$args = self::prepare($js, $key, 'js');
+					if ($args) {
+						wp_register_script($args['key'], $args['file'], $args['deps'], $args['ver'], $args['in_footer']);
+					}
 				}
 			}
-		}
+		}, $type);
+
 
 	}
 
@@ -73,7 +75,7 @@ class Media
 		if (is_string($args)) {
 			$args = ['file' => $args];
 		}
-		
+
 		$args += $default;
 		if (empty($args['file'])) {
 			return false;

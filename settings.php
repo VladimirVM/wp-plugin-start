@@ -48,9 +48,10 @@ $settings = [
 	'pages' => [
 		AdminPage::generateItem([
 			'menu' => 'Plugin\Admin\Page',
+			'page' => 'Title page',
 			'slug' => 'plugin_settings',
 			'blocks' => [
-				'settings_form'
+				'main_option'
 			],
 			'js' => [Media::key('admin.js')],
 			'css' => [Media::key('admin.css')],
@@ -60,11 +61,13 @@ $settings = [
 		AdminPage::generateItem('Plugin\Admin\Page tools.php sub', 'tools.php'),
 	],
 	'blocks' => [
-		'settings_form' => [
-			'type' => 'form',
-			'form' => [
+		'main_option' => [
+			'type' => 'option',
+			'title' => __('Plugin settings'),
+			'fields' => [
 				[
-					'field' => ['type' => 'text', 'name' => 'field_name'],
+					'type' => 'text',
+					'name' => 'field_name',
 					'label' => 'Title'
 				]
 			]
