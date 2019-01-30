@@ -15,6 +15,7 @@ class Option
 	];
 
 	public $key = '';
+	public $name = null;
 	public $title = '';
 	public $args = [];
 	public $fields = [];
@@ -35,15 +36,19 @@ class Option
 
 	function prepare()
 	{
-
+		if ($this->name === null) {
+		    $this->name = Settings::$plugin_key . '_' . $this->key;
+		}
 	}
 
 	function register()
 	{
-
-		register_setting(self::$page_slug, Settings::$plugin_key, $this->args);
+		if ($this->name) {
+			register_setting(self::$page_slug, $this->name, $this->args);
+		}
 
 		$section_key = $this->key . '_section';
+		$section_name = Settings::$plugin_key . '_' . $this->key;
 
 		add_settings_section(
 			$section_key,
@@ -51,11 +56,9 @@ class Option
 			[$this, 'sectionRented'],
 			self::$page_slug
 		);
-		// @bug ERROR: options page not found.
 
 		if (!empty($this->fields)) {
 			foreach ($this->fields as $field) {
-				// @todo check all
 				$id = Settings::$plugin_key . '_' . $field['name'];
 
 				add_settings_field(
@@ -68,11 +71,15 @@ class Option
 						'label_for' => $id,
 						'field' => $field,
 						'id' => $id,
-						'section' => $section_key, 'this' => $this
+						'section' => $section_key,
+						'this' => $this
 					]
 				);
 
-//				register_setting(self::$page_slug, $id);
+				if (!$this->name) {
+					register_setting(self::$page_slug, $field['name'], $this->args);
+				}
+
 			}
 		}
 
@@ -80,10 +87,24 @@ class Option
 
 	static function fieldTextRender($data)
 	{
-		$options = get_option(Settings::$plugin_key);
+		$section_name = $data['this']->name;
+		$name = '';
+		
+		if ($section_name) {
+			$options = get_option($section_name);
+			$value = '';
+			if (isset($options[$data['field']['name']])) {
+				$value = $options[$data['field']['name']];
+			}
+			$name = $section_name . '[' . $data['field']['name'] . ']';
+		} else {
+			$name = $data['field']['name'];
+			$value = get_option($name, null);
+		}
+
 		?>
-		<input type='text' name='<?php echo Settings::$plugin_key; ?>[<?php echo $data['field']['name']; ?>]'
-		       value='<?php echo isset($options[$data['field']['name']])??$options[$data['field']['name']]; ?>'>
+		<input type='text' name='<?php echo esc_attr($name); ?>'
+		       value='<?php echo esc_attr($value); ?>'>
 		<?php
 
 	}

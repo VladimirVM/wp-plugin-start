@@ -69,8 +69,13 @@ $settings = [
 					'type' => 'text',
 					'name' => 'field_name',
 					'label' => 'Title'
+				],
+				[
+					'type' => 'text',
+					'name' => 'field_name_2',
+					'label' => 'Title'
 				]
-			]
+			],
 		]
 	],
 ];
