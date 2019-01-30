@@ -102,8 +102,8 @@ class Page
 		
 		if ($this->isLoad()) {
 		    $this->media();
-		    $this->block();
 		}
+		$this->block();
 	}
 	
 	function isLoad ()
