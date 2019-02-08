@@ -48,7 +48,6 @@ class Option
 		}
 
 		$section_key = $this->key . '_section';
-		$section_name = Settings::$plugin_key . '_' . $this->key;
 
 		add_settings_section(
 			$section_key,
@@ -59,20 +58,27 @@ class Option
 
 		if (!empty($this->fields)) {
 			foreach ($this->fields as $field) {
+
 				$id = Settings::$plugin_key . '_' . $field['name'];
+
+				Field::init(self::$page_slug, $section_key, [
+					'section' => $this,
+					'field' => $field,
+					'id' => $id,
+				]);
+
+				continue;
 
 				add_settings_field(
 					$id,
 					$field['label'],
-					self::$field_type[$field['type']],
+					['Field', 'build'],
 					self::$page_slug,
 					$section_key,
 					[
 						'label_for' => $id,
 						'field' => $field,
-						'id' => $id,
-						'section' => $section_key,
-						'this' => $this
+						'section' => $this
 					]
 				);
 
@@ -87,7 +93,7 @@ class Option
 
 	static function fieldTextRender($data)
 	{
-		$section_name = $data['this']->name;
+		$section_name = $data['section']->name;
 		$name = '';
 		
 		if ($section_name) {

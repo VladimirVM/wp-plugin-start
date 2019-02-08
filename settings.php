@@ -71,9 +71,9 @@ $settings = [
 					'label' => 'Title'
 				],
 				[
-					'type' => 'text',
+					'tag' => 'textarea',
 					'name' => 'field_name_2',
-					'label' => 'Title'
+					'label' => 'Description'
 				]
 			],
 		]
