@@ -24,6 +24,7 @@ class Page
 	 * @var array self::$default
 	 */
 	private $settings = [];
+	private $blocks = [];
 
 
 	function __construct($settings)

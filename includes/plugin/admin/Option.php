@@ -10,9 +10,6 @@ class Option
 
 	static $page_slug;
 	static $page_blocks;
-	static $field_type = [
-		'text' => [__CLASS__, 'fieldTextRender']
-	];
 
 	public $key = '';
 	public $name = null;
@@ -37,7 +34,7 @@ class Option
 	function prepare()
 	{
 		if ($this->name === null) {
-		    $this->name = Settings::$plugin_key . '_' . $this->key;
+			$this->name = Settings::$plugin_key . '_' . $this->key;
 		}
 	}
 
@@ -71,42 +68,9 @@ class Option
 
 	}
 
-	static function fieldTextRender($data)
-	{
-		$section_name = $data['section']->name;
-		$name = '';
-		
-		if ($section_name) {
-			$options = get_option($section_name);
-			$value = '';
-			if (isset($options[$data['field']['name']])) {
-				$value = $options[$data['field']['name']];
-			}
-			$name = $section_name . '[' . $data['field']['name'] . ']';
-		} else {
-			$name = $data['field']['name'];
-			$value = get_option($name, null);
-		}
-
-		?>
-		<input type='text' name='<?php echo esc_attr($name); ?>'
-		       value='<?php echo esc_attr($value); ?>'>
-		<?php
-
-	}
-
 	function sectionRented()
 	{
-
 		echo $this->description;
-
-	}
-
-	function render()
-	{
-		settings_fields(self::$page_slug);
-		do_settings_sections(self::$page_slug);
-		submit_button();
 	}
 
 	static function renderOnPage()

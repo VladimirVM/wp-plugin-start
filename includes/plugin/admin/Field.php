@@ -66,8 +66,8 @@ class Field
 
 	function render()
 	{
-		if (isset($this->data['field']['items'])) {
-		    return self::renderListTags($this);
+		if (isset($this->data['field']['items']) && $this->tag !== 'select') {
+			return self::renderListTags($this);
 		}
 		return self::renderFormTag($this);
 	}
@@ -82,32 +82,32 @@ class Field
 		if (!$self->tag) {
 			return '';
 		}
-		$content = '';
-		$attrs = $self->attr;
-		$value = null;
+
+		$node = [
+			'tag' => $self->tag,
+			'name' => '',
+			'value' => null,
+			'label' => '',
+			'content' => '',
+			'attr' => $self->attr
+		];
 
 		$template = '<%1$s %2$s>';
-		if (!isset(self::$without_close_tag[$self->tag])) {
+		if (!isset(self::$without_close_tag[$node['tag']])) {
 			$template .= '%3$s</%1$s>';
 		}
 
-		if (!empty($attrs['name'])) {
-			$value = self::value($attrs['name']);
-
-			$attrs['name'] = self::name($attrs['name']);
+		if (!empty($node['attr']['name'])) {
+			$node['name'] = $node['attr']['name'];
 		}
 
-		if ($value !== null) {
-			if (!isset(self::$without_close_tag[$self->tag])) {
-				$content = $value;
-			} else {
-				$attrs['value'] = $value;
-			}
-		}
+		$node['attr']['name'] = self::name($node['name']);
 
-		$tag_attr = self::attr($attrs);
+		$node = self::prepareAttrValue($node, $self->data['field']['items']??[]);
 
-		$out = sprintf($template, $self->tag, $tag_attr, $content);
+		$attr = self::attr($node['attr']);
+
+		$out = sprintf($template, $self->tag, $attr, $node['content']);
 
 		if (isset($self->data['field']['description'])) {
 			$out .= '<p class="description">' . $self->data['field']['description'] . '</p>';
@@ -122,8 +122,7 @@ class Field
 		if (!$self->tag) {
 			return $out;
 		}
-		$content = '';
-		$attrs = $self->attr;
+		$attr = $self->attr;
 		$value = null;
 
 		$template = '<%1$s %2$s>';
@@ -131,52 +130,40 @@ class Field
 			$template .= '%3$s</%1$s>';
 		}
 
-		$name = !empty($attrs['name']) ? (array)$attrs['name'] : [];
+		$name = !empty($attr['name']) ? (array)$attr['name'] : [];
 		$out = '';
 		foreach ($self->data['field']['items'] as $key => $item) {
-			$item_name = array_merge($name, [$key]);
-			$item_value = '';
-			$item_label = '';
-			$item_attrs = $attrs;
-			
-			unset($item_attrs['id']);
+			$node = [
+				'tag' => $self->tag,
+				'name' => array_merge($name, [$key]),
+				'value' => '',
+				'label' => '',
+				'content' => '',
+				'attr' => $attr
+			];
 
 			if (is_array($item)) {
 				if (isset($item['value'])) {
-					$item_value = $item['value'];
+					$node['value'] = $item['value'];
 				}
 				if (isset($item['label'])) {
-					$item_label = $item['label'];
+					$node['label'] = $item['label'];
 				}
 			} else {
 				$parts = explode(':', $item, 2);
-				$item_value = $parts[0];
-				$item_label = $parts[1] ?? $item_value;
+				$node['value'] = $parts[0];
+				$node['label'] = $parts[1] ?? $node['value'];
 			}
 
-			$value = self::value($name);
+			$node = self::prepareAttrValue($node);
 
-			if (isset($attrs['type'])) {
-				$item_attrs['value'] = $value;
-				if (($attrs['type'] === 'radio' || $attrs['type'] === 'checkbox')) {
-					if (isset($value[$key]) && $value[$key] === $item_value) {
-						$item_attrs['checked'] = true;
-					}
-					$item_attrs['value'] = $item_value;
-				}
-			} elseif ($value !== null) {
-				if (!isset(self::$without_close_tag[$self->tag])) {
-					$content = $value;
-				} else {
-					$item_attrs['value'] = $value;
-				}
-			}
+			$node['attr']['name'] = self::name($node['name']);
 
-			$item_attrs['name'] = self::name($item_name);
+			unset($node['attr']['id']);
 
-			$tag_attr = self::attr($item_attrs);
+			$tag_attr = self::attr($node['attr']);
 
-			$out .= '<p><label>' . sprintf($template, $self->tag, $tag_attr, $content) . '<span>' . $item_label . '</span></label></p>';
+			$out .= '<p><label>' . sprintf($template, $self->tag, $tag_attr, $node['content']) . '<span>' . $node['label'] . '</span></label></p>';
 		}
 
 		if (isset($self->data['field']['description'])) {
@@ -186,15 +173,49 @@ class Field
 		return $out;
 	}
 
-
-	static function name($attr_name)
+	static function prepareAttrValue($node, $items = [])
 	{
-		$attr_name = (array)$attr_name;
-		$name = array_shift($attr_name);
-		if (!empty($attr_name)) {
-			$name .= '[' . implode('][', $attr_name) . ']';
+		$value = self::value($node['name']);
+		
+		if (isset($node['attr']['type'])) {
+			$node['attr']['value'] = $value;
+			if (($node['attr']['type'] === 'radio' || $node['attr']['type'] === 'checkbox')) {
+				if (isset($value) && $value === $node['value']) {
+					$node['attr']['checked'] = true;
+				}
+				$node['attr']['value'] = $node['value'];
+			}
+		} elseif ($node['tag'] === 'select') {
+			foreach ($items as $key => $label) {
+				$attr = ' value=' . esc_attr($key);
+				if (isset($value) && $value === $key) {
+					$attr .= ' selected';
+				}
+				$node['content'] .= sprintf('<%1$s %2$s>%3$s</%1$s>', 'option', $attr, esc_html($label));
+			}
+		} elseif ($value !== null) {
+			if (!isset(self::$without_close_tag[$node['tag']])) {
+				$node['content'] = $value;
+			} else {
+				$node['attr']['value'] = $value;
+			}
 		}
-		return $name;
+
+		return $node;
+	}
+
+
+	static function name($name)
+	{
+		if (empty($name)) {
+		    return null;
+		}
+		$name = (array)$name;
+		$out = array_shift($name);
+		if (!empty($name)) {
+			$out .= '[' . implode('][', $name) . ']';
+		}
+		return $out;
 	}
 
 
@@ -235,15 +256,17 @@ class Field
 	static function attr($attrs)
 	{
 		$out = '';
-		
+
 		if (empty($attrs)) {
-		    return $out;
+			return $out;
 		}
-		
+
 		foreach ((array)$attrs as $name => $value) {
 			$name = preg_replace('/[^a-z0-9\-_]/i', '', $name);
 			if ($value === true) {
 				$out .= ' ' . $name;
+			} elseif ($value === null) {
+				continue;
 			} else {
 				$out .= ' ' . $name . '="' . esc_attr($value) . '" ';
 			}
@@ -319,7 +342,7 @@ class Field
 
 			$attr['name'] = $name;
 		}
-		
+
 		$tag = new self($tag, $attr, $data);
 
 		echo $tag->render();

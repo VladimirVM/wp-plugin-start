@@ -90,6 +90,18 @@ $settings = [
 					],
 
 				],
+				[
+					'tag' => 'select',
+					'name' => 'field_name_select',
+					'label' => 'Select Me',
+					'items' => [
+						'' => 'Choose Value',
+						'key_1' => 'Select 1',
+						'key_2' => 'Select 2',
+						'key_3' => 'Select 3',
+					],
+
+				],
 			],
 		]
 	],
