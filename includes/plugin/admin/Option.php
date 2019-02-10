@@ -66,26 +66,6 @@ class Option
 					'field' => $field,
 					'id' => $id,
 				]);
-
-				continue;
-
-				add_settings_field(
-					$id,
-					$field['label'],
-					['Field', 'build'],
-					self::$page_slug,
-					$section_key,
-					[
-						'label_for' => $id,
-						'field' => $field,
-						'section' => $this
-					]
-				);
-
-				if (!$this->name) {
-					register_setting(self::$page_slug, $field['name'], $this->args);
-				}
-
 			}
 		}
 

@@ -68,13 +68,28 @@ $settings = [
 				[
 					'type' => 'text',
 					'name' => 'field_name',
-					'label' => 'Title'
+					'label' => 'Title',
+					'description' => 'Some information about it field',
 				],
 				[
 					'tag' => 'textarea',
 					'name' => 'field_name_2',
 					'label' => 'Description'
-				]
+				],
+				[
+					'type' => 'checkbox',
+					'name' => 'field_name_3',
+					'label' => 'Check Me',
+					'items' => [
+						'key_1' => 'Value 1',
+						'key_2' => [
+							'value' => 'value_2',
+							'label' => 'Label 2',
+						],
+						'key_3' => 'value_3:Item : 2',
+					],
+
+				],
 			],
 		]
 	],
