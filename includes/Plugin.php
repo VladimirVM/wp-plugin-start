@@ -10,6 +10,8 @@ use WPPluginStart\Plugin\Media;
 
 class Plugin
 {
+	static private $_notice = [];
+	
 
 	public function __construct($main_file, $config = [])
 	{
@@ -49,6 +51,11 @@ class Plugin
 			Media::init($media['admin'], 'admin');
 		}
 
+		add_action( 'admin_notices', function () {
+		    if (!empty(self::$_notice)) {
+		        implode('', self::$_notice);
+		    }
+		});
 	}
 
 	public function initFront()
@@ -82,9 +89,10 @@ class Plugin
 			$template = locate_template($_names);
 		}
 
-		if ($template) {
+		if (!$template) {
 			foreach ((array)$names as $name) {
 				$file = Settings::$plugin_template_dir . '/' . $name;
+				
 				if (is_file($file)) {
 					$template = $file;
 					break;
@@ -125,6 +133,13 @@ class Plugin
 			return $links;
 		});
 	}
+	
+	static function notice ($message, $type = 'warning', $class = '')
+	{
+		$class .= ' notice-' . $type;
+		self::$_notice[] .= sprintf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
+	}
+	
 
 
 }

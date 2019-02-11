@@ -7,7 +7,7 @@ class Settings
 	static $plugin_dir = '';
 	static $plugin_key = '';
 	static $plugin_basename = '';
-	static $plugin_template_folder = 'template';
+	static $plugin_template_folder = 'templates';
 	static $plugin_template_url = '';
 	static $plugin_template_dir = '';
 	static $plugin_main_file = '';

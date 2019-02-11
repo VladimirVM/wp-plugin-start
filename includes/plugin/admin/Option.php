@@ -3,6 +3,7 @@
 namespace WPPluginStart\Plugin\Admin;
 
 
+use WPPluginStart\Plugin;
 use WPPluginStart\Plugin\Settings;
 
 class Option
@@ -11,6 +12,7 @@ class Option
 	static $page_slug;
 	static $page_blocks;
 
+	public $uid = null;
 	public $key = '';
 	public $name = null;
 	public $title = '';
@@ -36,12 +38,16 @@ class Option
 		if ($this->name === null) {
 			$this->name = Settings::$plugin_key . '_' . $this->key;
 		}
+		if ($this->uid === null) {
+			$this->uid = self::$page_slug;
+		}
+		
 	}
 
 	function register()
 	{
 		if ($this->name) {
-			register_setting(self::$page_slug, $this->name, $this->args);
+			register_setting($this->uid, $this->name, $this->args);
 		}
 
 		$section_key = $this->key . '_section';
@@ -50,7 +56,7 @@ class Option
 			$section_key,
 			$this->title,
 			[$this, 'sectionRented'],
-			self::$page_slug
+			$this->uid
 		);
 
 		if (!empty($this->fields)) {
@@ -58,7 +64,7 @@ class Option
 
 				$id = Settings::$plugin_key . '_' . $field['name'];
 
-				Field::init(self::$page_slug, $section_key, [
+				Field::init($this->uid, $section_key, [
 					'section' => $this,
 					'field' => $field,
 					'id' => $id,
@@ -72,34 +78,41 @@ class Option
 	{
 		echo $this->description;
 	}
-
-	static function renderOnPage()
+	
+	function render ()
 	{
-		settings_fields(self::$page_slug);
-		do_settings_sections(self::$page_slug);
-		submit_button();
+	    include Plugin::template('admin/option.php', false);
 	}
-
-	static function init($slug = '', $blocks = [])
+	
+	
+	static function build ($key, $block, $args = [])
 	{
-		self::$page_slug = $slug;
-		self::$page_blocks = array_combine($blocks, $blocks);
-		add_action('admin_init', [__CLASS__, 'load']);
+		self::$page_slug = Page::$slug;
+		$self = new self($key, $block);
+		
+		return [$self, 'render'];
 	}
+	
 
-	static function load()
-	{
-		$blocks = Settings::get('blocks', []);
-
-
-		$blocks = array_filter($blocks, function ($value, $key) {
-			return (isset($value['type']) && $value['type'] === 'option' && self::$page_blocks[$key]);
-		}, ARRAY_FILTER_USE_BOTH);
-
-
-		foreach ($blocks as $key => $block) {
-			new self($key, $block);
-		}
-	}
+//	static function init($slug = '', $blocks = [])
+//	{
+//		self::$page_slug = $slug;
+//		self::$page_blocks = array_combine($blocks, $blocks);
+//		add_action('admin_init', [__CLASS__, 'load']);
+//	}
+//
+//	static function load()
+//	{
+//		$blocks = Settings::get('blocks', []);
+//
+//		$blocks = array_filter($blocks, function ($value, $key) {
+//			return (isset($value['type']) && $value['type'] === 'option' && self::$page_blocks[$key]);
+//		}, ARRAY_FILTER_USE_BOTH);
+//
+//
+//		foreach ($blocks as $key => $block) {
+//			new self($key, $block);
+//		}
+//	}
 
 }
