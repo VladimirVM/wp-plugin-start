@@ -78,6 +78,14 @@ $settings = [
 				],
 				[
 					'type' => 'checkbox',
+					'name' => 'field_name_checkbox',
+					'label' => 'Single checkbox',
+					'attr' => [
+						'value' => 'checkbox',
+					]
+				],
+				[
+					'type' => 'checkbox',
 					'name' => 'field_name_3',
 					'label' => 'Check Me',
 					'items' => [
@@ -101,6 +109,18 @@ $settings = [
 						'key_3' => 'Select 3',
 					],
 
+				],
+				[
+					'tag' => 'select',
+					'name' => 'field_name_select_multiple',
+					'label' => 'Select Me',
+					'items' => [
+						'' => 'Choose Value',
+						'key_1' => 'Select 1',
+						'key_2' => 'Select 2',
+						'key_3' => 'Select 3',
+					],
+					'attr' => ['multiple' => true]
 				],
 			],
 		]

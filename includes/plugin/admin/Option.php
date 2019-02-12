@@ -85,10 +85,10 @@ class Option
 	}
 	
 	
-	static function build ($key, $block, $args = [])
+	static function build ($key, $settings, $args = [])
 	{
 		self::$page_slug = Page::$slug;
-		$self = new self($key, $block);
+		$self = new self($key, $settings);
 		
 		return [$self, 'render'];
 	}

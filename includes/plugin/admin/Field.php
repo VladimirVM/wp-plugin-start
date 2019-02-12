@@ -85,7 +85,7 @@ class Field
 
 		$node = [
 			'tag' => $self->tag,
-			'name' => '',
+			'name' => [],
 			'value' => null,
 			'label' => '',
 			'content' => '',
@@ -101,9 +101,17 @@ class Field
 			$node['name'] = $node['attr']['name'];
 		}
 
-		$node['attr']['name'] = self::name($node['name']);
+		if (!empty($node['attr']['value'])) {
+			$node['value'] = $node['attr']['value'];
+		}
 
-		$node = self::prepareAttrValue($node, $self->data['field']['items']??[]);
+		$node['attr']['name'] = self::name($node['name']);
+		
+		if ($node['tag'] === 'select' && isset($node['attr']['multiple'])) {
+			$node['attr']['name'] .= '[]';
+		}
+		
+		$node = self::prepareAttrValue($node, $self->data['value'] ?? null, $self->data['field']['items'] ?? []);
 
 		$attr = self::attr($node['attr']);
 
@@ -154,8 +162,8 @@ class Field
 				$node['value'] = $parts[0];
 				$node['label'] = $parts[1] ?? $node['value'];
 			}
-
-			$node = self::prepareAttrValue($node);
+			
+			$node = self::prepareAttrValue($node, $self->data['value'][$key] ?? null);
 
 			$node['attr']['name'] = self::name($node['name']);
 
@@ -173,22 +181,29 @@ class Field
 		return $out;
 	}
 
-	static function prepareAttrValue($node, $items = [])
+	static function prepareAttrValue($node, $value = null, $items = [])
 	{
-		$value = self::value($node['name']);
-		
+//		$value = self::value($node['name'], $value);
+
 		if (isset($node['attr']['type'])) {
 			$node['attr']['value'] = $value;
 			if (($node['attr']['type'] === 'radio' || $node['attr']['type'] === 'checkbox')) {
-				if (isset($value) && $value === $node['value']) {
+				if ($value === $node['value']) {
 					$node['attr']['checked'] = true;
 				}
 				$node['attr']['value'] = $node['value'];
 			}
 		} elseif ($node['tag'] === 'select') {
+			if (is_array($value)) {
+				$value = array_flip($value);
+			}
 			foreach ($items as $key => $label) {
 				$attr = ' value=' . esc_attr($key);
-				if (isset($value) && $value === $key) {
+				if (is_array($value)) {
+					if (isset($value[$key])) {
+						$attr .= ' selected';
+					}
+				} elseif ($value === $key) {
 					$attr .= ' selected';
 				}
 				$node['content'] .= sprintf('<%1$s %2$s>%3$s</%1$s>', 'option', $attr, esc_html($label));
@@ -208,7 +223,7 @@ class Field
 	static function name($name)
 	{
 		if (empty($name)) {
-		    return null;
+			return null;
 		}
 		$name = (array)$name;
 		$out = array_shift($name);
@@ -219,25 +234,18 @@ class Field
 	}
 
 
-	static function value($name)
+	static function value($name, $value)
 	{
 
 		if (empty($name)) {
 			return null;
 		}
 
-		$name = (array)$name;
-		$_name = array_shift($name);
-
-		$value = get_option($_name, null);
-
 		if ($value === null) {
 			return null;
 		}
 
-		if (!count($name)) {
-			return $value;
-		}
+		$name = (array)$name;
 
 		if (is_array($value)) {
 			foreach ($name as $key) {
@@ -302,10 +310,13 @@ class Field
 
 	static function build($data)
 	{
+		static $values = [];
 		$tag = '';
-		$attr = [];
+		$attr = $data['field']['attr'] ?? [];
 		$field = $data['field'] ?? [];
 		$section = $data['section'] ?? null;
+		$value = [];
+		$name = [];
 
 		if (isset($field['tag'])) {
 			$tag = $field['tag'];
@@ -328,20 +339,29 @@ class Field
 			}
 
 			$name = [];
+
+			if (!empty($section->name)) {
+				$name[] = $section->name;
+			}
+
 			if (!empty($attr['name'])) {
-				$name[] = (array)$attr['name'];
+				$name = array_merge($name, (array)$attr['name']);
+			} elseif (!empty($field['name'])) {
+				$name = array_merge($name, (array)$field['name']);
 			}
 
-			if (isset($field['name'])) {
-				$name[] = $field['name'];
-			}
-
-			if ($section && !empty($section->name)) {
-				array_unshift($name, $section->name);
+			if (!empty($name)) {
+				$first_name = reset($name);
+				if (!isset($values[$first_name])) {
+					$values[$first_name] = get_option($first_name, '');
+				}
+				$value[$first_name] = $values[$first_name];
 			}
 
 			$attr['name'] = $name;
 		}
+
+		$data['value'] = self::value($name, $value);
 
 		$tag = new self($tag, $attr, $data);
 
