@@ -1,107 +1,68 @@
 <?php
+
 namespace WPPluginStart\Plugin;
 
 class Settings
 {
-	public $settings_file_name = 'settings.php';
-	static $plugin_dir = '';
-	static $plugin_key = '';
-	static $plugin_basename = '';
-	static $plugin_template_folder = 'templates';
-	static $plugin_template_url = '';
-	static $plugin_template_dir = '';
-	static $plugin_main_file = '';
-	static $plugin_url = '';
-	static $plugin_media_folder = 'media';
-	static $plugin_media_url = '';
-	static $plugin_media_dir = '';
-	static $version = 1.0;
-	static $settings = [];
-	static $options = [];
+	private $settings = [];
+	private $options = [];
 
-	public function __construct($plugin_main_file, $config = [], $settings_file_name = null)
+	public function __construct($settings = null)
 	{
-		self::$plugin_dir = dirname($plugin_main_file);
-		self::$plugin_main_file = $plugin_main_file;
-		self::$plugin_key = basename($plugin_main_file, '.php');
-		self::$plugin_url = rtrim(plugin_dir_url($plugin_main_file), '\\/');
-		
-		if (!empty($config)) {
-		    foreach ($config as $key => $value) {
-		    	if (property_exists(__CLASS__, $key)) {
-				    self::$$key = $value;
-		    	}
-		    }
+		if (is_string($settings)) {
+			$this->settings = self::loadFromFile($settings);
+		} elseif (is_array($settings)) {
+			$this->settings = $settings;
 		}
 
-		self::$plugin_template_dir = self::$plugin_dir . '/' . self::$plugin_template_folder;
-		self::$plugin_template_url = self::$plugin_url . '/' . self::$plugin_template_folder;
-		self::$plugin_media_url = self::$plugin_url . '/' . self::$plugin_media_folder;
-		self::$plugin_media_dir = self::$plugin_dir . '/' . self::$plugin_media_folder;
-		
-		self::$plugin_basename = plugin_basename($plugin_main_file);
-
-		if ($settings_file_name !== null) {
-			$this->settings_file_name = $settings_file_name;
-		}
-		
-		
-
-		self::$settings = $this->loadFromFile();
-		
 	}
 
-//	static $instance = null;
-//    static function instance($plugin_main_file, $settings_file_name = null)
-//    {
-//
-//        if (null === static::$instance) {
-//            static::$instance = new Settings($plugin_main_file, $settings_file_name);
-//        }
-//
-//        return static::$instance;
-//    }
-
-	static function get($key = null, $default = null)
+	public function get($key = null, $default = null)
 	{
 		if ($key !== null) {
-			if (isset(self::$settings[$key])) {
-				return self::$settings[$key];
+			if (isset($this->settings[$key])) {
+				return $this->settings[$key];
 			} else {
 				return $default;
 			}
 		}
 
-		return self::$settings;
+		return $this->settings;
 	}
 
-	static function option($key = null)
+	public function set($key, $value = null)
+	{
+		return $this->settings[$key] = $value;
+	}
+
+
+	public function option($key = null)
 	{
 		if ($key !== null) {
-			if (!isset(self::$options[$key])) {
-				self::$options[$key] = get_option($key);
+			if (!isset($this->options[$key])) {
+				$this->options[$key] = get_option($key);
 			}
-			return self::$options[$key];
+			return $this->options[$key];
 		}
 
-		return self::$options;
+		return $this->options;
 	}
 
-	static function setOption($key, $value, $autoload = false)
+	public function setOption($key, $value, $autoload = false)
 	{
 		add_option($key, $value, '', $autoload);
-		self::$options[$key] = $value;
+		$this->options[$key] = $value;
 	}
 
-	static function delOption($key)
+	public function delOption($key)
 	{
 		delete_option($key);
-		unset(self::$options[$key]);
+		unset($this->options[$key]);
 	}
 
-	static function table($name)
+	public function table($name)
 	{
-		$tables = self::get('tables');
+		$tables = $this->get('tables');
 
 		if (isset($tables[$name]['name'])) {
 			return $tables[$name]['name'];
@@ -110,12 +71,12 @@ class Settings
 		}
 	}
 
-	function loadFromFile()
+	static function loadFromFile($file_name)
 	{
 
 		$settings = [];
 
-		$path = self::$plugin_dir . '/' . $this->settings_file_name;
+		$path = $file_name;
 
 		if (is_file($path)) {
 			ob_start();

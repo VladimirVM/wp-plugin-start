@@ -23,23 +23,29 @@ class Page
 	static $blocks_type = [
 		'option' => ['\WPPluginStart\Plugin\Admin\Option', 'build'],
 	];
-	static $blocks = [];
+	private $blocks = [];
 	static $slug = '';
 
 	/**
 	 * @var array self::$default
 	 */
 	private $settings = [];
+	/**
+	 * @var Plugin
+	 */
+	private $plugin = null;
 
 
-	function __construct($settings)
+	function __construct($settings, $plugin)
 	{
 
 		if (empty($settings)) {
 			return;
 		}
 
-		$this->settings = array_merge(self::$default, $settings);
+		$this->plugin = $plugin;
+
+		$this->settings = array_merge(static::$default, $settings);
 
 		$this->prepare();
 		$this->add();
@@ -48,9 +54,9 @@ class Page
 	function prepare()
 	{
 		if ($this->settings['render'] === null) {
-			$this->settings['render'] = [$this, 'content'];
+			$this->settings['render'] = [$this, 'render'];
 		}
-		self::$slug = $this->settings['slug'];
+		static::$slug = $this->settings['slug'];
 	}
 
 	function media()
@@ -66,7 +72,7 @@ class Page
 	function build()
 	{
 		if (!empty($this->settings['blocks'])) {
-			$blocks = Settings::get('blocks', []);
+			$blocks = $this->plugin::settings('blocks', []);
 
 			foreach ($this->settings['blocks'] as $key => $name) {
 				$args = null;
@@ -77,7 +83,7 @@ class Page
 				}
 
 				if (empty($blocks[$name])) {
-					Plugin::notice('Block name "' . $name . '" in undefined ');
+					$this->plugin::notice('Block name "' . $name . '" in undefined ');
 					continue;
 				}
 
@@ -85,22 +91,22 @@ class Page
 
 				$build = null;
 				if (empty($block['type'])) {
-					Plugin::notice('Block type is empty ');
+					$this->plugin::notice('Block type is empty. For block: ' . $name);
 					continue;
 				}
 
 				if (is_callable($block['type'])) {
 					$build = $block['type'];
-				} elseif (isset(self::$blocks_type[$block['type']])) {
-					$build = self::$blocks_type[$block['type']];
+				} elseif (isset(static::$blocks_type[$block['type']])) {
+					$build = static::$blocks_type[$block['type']];
 				}
 
 				if (!$build) {
-					Plugin::notice('Can not build block');
+					$this->plugin::notice('Can not build block');
 					continue;
 				}
 
-				self::$blocks[] = call_user_func($build, $name, $block, $args);
+				$this->blocks[] = call_user_func($build, $name, $block, $args);
 
 			}
 		}
@@ -108,13 +114,13 @@ class Page
 
 	function render()
 	{
-		include Plugin::template('admin/page.php', false);
+		include $this->plugin::template('admin/page.php', false);
 	}
 
 
-	static function content()
+	function content()
 	{
-		foreach (self::$blocks as $block) {
+		foreach ($this->blocks as $block) {
 			if (is_callable($block)) {
 				call_user_func($block);
 			} elseif (is_scalar($block)) {
@@ -146,8 +152,8 @@ class Page
 			);
 		}
 
-		self::$hooks[$this->settings['slug']] = $hook;
-
+		static::$hooks[$this->settings['slug']] = $hook;
+		
 		if ($this->isLoad()) {
 			$this->media();
 		}
@@ -163,28 +169,36 @@ class Page
 	}
 
 
-	static function init()
+	static function init($plugin)
 	{
-		add_action('admin_menu', [__CLASS__, 'addAll']);
+		$pages = $plugin::settings('pages', []);
+
+		add_action('admin_menu', function () use ($plugin, $pages) {
+			foreach ($pages as $page) {
+				new Page($page, $plugin);
+			}
+		});
+
+
 	}
 
-	static function addAll()
-	{
-		$pages = Settings::get('pages', []);
+//	static function addAll()
+//	{
+//		$pages = $this->plugin::settings('pages', []);
+//
+//		if (empty($pages)) {
+//			return;
+//		}
+//		foreach ($pages as $page) {
+//			new self($page);
+//		}
+//	}
 
-		if (empty($pages)) {
-			return;
-		}
-		foreach ($pages as $page) {
-			new self($page);
-		}
-	}
-
-	static function generateItem($key, $parent = false, $add_plugin_key = true)
+	static function generateItem($key, $parent = false, $add_plugin_key = '')
 	{
-		$args = self::$default;
+		$args = static::$default;
 		if ($parent) {
-			$args['parent'] = self::parentSlug($parent, $add_plugin_key);
+			$args['parent'] = static::parentSlug($parent, $add_plugin_key);
 		}
 
 		if (is_scalar($key)) {
@@ -194,11 +208,11 @@ class Page
 			$key = $args['slug'];
 		}
 
-		$slug = self::pageSlug($args['slug'], false);
+		$slug = static::pageSlug($args['slug'], false);
 		$slug_and_key = $slug;
 
 		if ($add_plugin_key) {
-			$slug_and_key = self::pageSlug($args['slug'], $add_plugin_key);
+			$slug_and_key = static::pageSlug($args['slug'], $add_plugin_key);
 		}
 
 		if (empty($slug)) {
@@ -213,26 +227,26 @@ class Page
 			$args['page'] = $args['menu'];
 		}
 
-		if (isset($args['template'])) {
-			$args['template'] = Plugin::template($args['template'], false);
-		}
-
-		if (empty($args['template'])) {
-			$args['template'] = Plugin::template('page/' . $slug . '.php', false);
-		}
+//		if (isset($args['template'])) {
+//			$args['template'] = $this->plugin::template($args['template'], false);
+//		}
+//
+//		if (empty($args['template'])) {
+//			$args['template'] = $this->plugin::template('page/' . $slug . '.php', false);
+//		}
 
 		$args['slug'] = $slug_and_key;
 
 		return $args;
 	}
 
-	static function pageSlug($slug, $add_plugin_key = true)
+	static function pageSlug($slug, $add_plugin_key = '')
 	{
 		$slug = preg_replace('#\s+#', '-', $slug);
 		$slug = sanitize_key($slug);
 
 		if ($add_plugin_key) {
-			$slug = Settings::$plugin_key . '--' . $slug;
+			$slug = $add_plugin_key . '--' . $slug;
 		}
 
 		return $slug;
@@ -244,15 +258,15 @@ class Page
 			return $slug;
 		}
 
-		return self::pageSlug($slug, $add_plugin_key);
+		return static::pageSlug($slug, $add_plugin_key);
 	}
 
 	static function isPluginPage()
 	{
 		$page = filter_input(INPUT_GET, 'page');
 
-		if (isset(self::$hooks[$page])) {
-			return self::$hooks[$page];
+		if (isset(static::$hooks[$page])) {
+			return static::$hooks[$page];
 		}
 		return false;
 	}

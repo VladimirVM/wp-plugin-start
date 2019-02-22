@@ -23,5 +23,11 @@ WPPluginStart\autoloader([
 
 new WPPluginStart\Plugin(__FILE__, ['version' => 0.1]);
 
+$key = WPPluginStart\Plugin::$key;
+
+//WPPluginStart\Plugin::notice('key: ' . $key);
+//WPPluginStart\Plugin::notice('key: ' . WPPluginStart\Plugin::settings('some_data'));
+
+
 
 

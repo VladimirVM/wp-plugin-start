@@ -9,6 +9,7 @@ use \WPPluginStart\Plugin\Admin\Page as AdminPage;
 
 
 $settings = [
+//	'some_data' => __DIR__,
 	'tables' => [
 		/*
 		'table_key' => [
@@ -31,34 +32,34 @@ $settings = [
 		['link' => '#link_to', 'title' => 'Settings', 'target' => true]
 	],
 	'media' => [
-		'js' => [
-			'admin.js' => 'admin.js',
-			['file' => 'front.js', 'key' => (Settings::$plugin_key . '-front-js'), 'deps' => ['jquery'], 'ver' => 1, 'footer' => true]
-		],
-		'css' => [
-			'admin.css' => 'admin.css',
-			['file' => 'front.css', 'key' => Media::key('front.css'), 'deps' => ['jquery'], 'ver' => 1, 'media' => 'all']
-		],
-		'admin' => [
-			'css' => [],
-			'js' => [],
-		],
-		'front' => [],
+//		'js' => [
+//			'admin.js' => 'admin.js',
+//			['file' => 'front.js', 'key' => (\WPPluginStart\Plugin::$key . '-front-js'), 'deps' => ['jquery'], 'ver' => 1, 'footer' => true]
+//		],
+////		'css' => [
+////			'admin.css' => 'admin.css',
+////			['file' => 'front.css', 'key' => Media::key('front.css'), 'deps' => ['jquery'], 'ver' => 1, 'media' => 'all']
+////		],
+//		'admin' => [
+//			'css' => [],
+//			'js' => [],
+//		],
+//		'front' => [],
 	],
 	'pages' => [
-		AdminPage::generateItem([
-			'menu' => 'Plugin\Admin\Page',
-			'page' => 'Title page',
-			'slug' => 'plugin_settings',
-			'blocks' => [
-				'main_option'
-			],
-			'js' => [Media::key('admin.js')],
-			'css' => [Media::key('admin.css')],
-		]),
+//		AdminPage::generateItem([
+//			'menu' => 'Plugin\Admin\Page',
+//			'page' => 'Title page',
+//			'slug' => 'plugin_settings',
+//			'blocks' => [
+//				'main_option'
+//			],
+//			'js' => [Media::key('admin.js')],
+//			'css' => [Media::key('admin.css')],
+//		]),
 		AdminPage::generateItem('Plugin\Admin\Page 2'),
-		AdminPage::generateItem('Plugin\Admin\Page 2 sub', 'Plugin\Admin\Page 2'),
-		AdminPage::generateItem('Plugin\Admin\Page tools.php sub', 'tools.php'),
+//		AdminPage::generateItem('Plugin\Admin\Page 2 sub', 'Plugin\Admin\Page 2'),
+//		AdminPage::generateItem('Plugin\Admin\Page tools.php sub', 'tools.php'),
 	],
 	'blocks' => [
 		'main_option' => [

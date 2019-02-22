@@ -40,7 +40,7 @@ class Control
 
     }
 
-    function uninstall()
+	public static function uninstall()
     {
         $options = Settings::get('options');
         foreach ($options as $key => $value) {
