@@ -18,6 +18,7 @@ class Page
 		'position' => null,
 		'css' => [],
 		'js' => [],
+		'template' => [],
 	];
 	static $hooks = [];
 	static $blocks_type = [
@@ -62,11 +63,11 @@ class Page
 	function media()
 	{
 		$media = [
-			'css' => $this->settings['css'],
-			'js' => $this->settings['js'],
+			'css' => $this->settings['css']??[],
+			'js' => $this->settings['js']??[],
 		];
 
-		Plugin\Media::init($media, 'admin');
+		Plugin\Media::add($this->plugin, $media, 'admin');
 	}
 
 	function build()
@@ -83,7 +84,7 @@ class Page
 				}
 
 				if (empty($blocks[$name])) {
-					$this->plugin::notice('Block name "' . $name . '" in undefined ');
+					$this->plugin::notice('Block name "' . $name . '" is undefined ');
 					continue;
 				}
 
@@ -163,7 +164,7 @@ class Page
 
 	function isLoad()
 	{
-		$page = filter_input(INPUT_GET, 'page');
+		$page = self::currentKey();
 
 		return ($page === $this->settings['slug']);
 	}
@@ -226,14 +227,14 @@ class Page
 		if (empty($args['page'])) {
 			$args['page'] = $args['menu'];
 		}
+		
+		if (isset($args['template'])) {
+			$args['template'] = (array)$args['template'];
+		}
 
-//		if (isset($args['template'])) {
-//			$args['template'] = $this->plugin::template($args['template'], false);
-//		}
-//
-//		if (empty($args['template'])) {
-//			$args['template'] = $this->plugin::template('page/' . $slug . '.php', false);
-//		}
+		if (empty($args['template'])) {
+			$args['template'][] = 'page/page-' . $slug . '.php';
+		}
 
 		$args['slug'] = $slug_and_key;
 
@@ -260,10 +261,16 @@ class Page
 
 		return static::pageSlug($slug, $add_plugin_key);
 	}
+	
+	static function currentKey ()
+	{
+		return filter_input(INPUT_GET, 'page');
+	}
+	
 
 	static function isPluginPage()
 	{
-		$page = filter_input(INPUT_GET, 'page');
+		$page = self::currentKey();
 
 		if (isset(static::$hooks[$page])) {
 			return static::$hooks[$page];

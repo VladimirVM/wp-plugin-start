@@ -25,6 +25,11 @@ trait Build
 	static $settings = null;
 	static $_settings = 'settings.php';
 
+	/**
+	 * @var Plugin
+	 */
+	static $instant = null;
+
 	static public function settings($key = null, $default = null)
 	{
 		if (static::$settings === null) {

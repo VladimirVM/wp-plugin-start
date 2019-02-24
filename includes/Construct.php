@@ -18,6 +18,26 @@ use WPPluginStart\Plugin\Media;
 
 class Construct
 {
+//	static $url = '';
+//	static $dir = '';
+//	static $key = '';
+//	static $main_file = '';
+//	static $basename = '';
+//	static $template_folder = 'templates';
+//	static $media_folder = 'media';
+//	static $template_url = '';
+//	static $template_dir = '';
+//	static $media_url = '';
+//	static $media_dir = '';
+//	static $version = 1.0;
+//
+//	static $settings = null;
+//	static $_settings = 'settings.php';
+
+	/**
+	 * @var Media
+	 */
+	private $media = null;
 
 	public function __construct($main_file, $config = [], $settings = null)
 	{
@@ -46,6 +66,8 @@ class Construct
 		} else {
 			static::$_settings = static::$dir . '/' . static::$_settings;
 		}
+		
+		static::$instant = $this;
 
 		// @todo Control
 
@@ -67,6 +89,8 @@ class Construct
 		} else {
 			$this->initFront();
 		}
+		
+		Media::init();
 
 	}
 
@@ -74,15 +98,13 @@ class Construct
 	{
 		
 		AdminPage::init($this);
-		
 
 		$this->action_links();
 
 		$media = static::settings('media', []);
 
 		if (!empty($media['admin'])) {
-			Media::register($media, 'admin');
-			Media::init($media['admin'], 'admin');
+			Media::add($this, $media['admin'], 'admin');
 		}
 
 		add_action('admin_notices', function () {
@@ -95,10 +117,9 @@ class Construct
 	public function initFront()
 	{
 		$media = static::settings('media', []);
-
+		
 		if (!empty($media['front'])) {
-			Media::register($media, 'front');
-			Media::init($media['front'], 'front');
+			Media::add($this, $media['front'], 'front');
 		}
 	}
 
