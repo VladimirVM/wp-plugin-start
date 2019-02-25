@@ -194,8 +194,8 @@ class Media
 			$args['key'] = self::key($plugin::$key . '--'  . (!is_numeric($key) ? $key : $args['file']));
 		}
 
-		if (is_file($plugin::$media_dir . $folder . $args['file'])) {
-			$args['file'] = $plugin::$media_url . $folder . $args['file'];
+		if (is_file($plugin::dir('media') . $folder . $args['file'])) {
+			$args['file'] = $plugin::url('media') . $folder . $args['file'];
 		}
 
 		return $args;

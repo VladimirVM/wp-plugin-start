@@ -17,6 +17,8 @@ error_reporting(-1);
 
 include 'includes/autoloader.php';
 
+define('WP_PLUGIN_START_DIR', __DIR__);
+
 WPPluginStart\autoloader([
 //    'ClassName' => __DIR__ . '/path/to/file'
 ]);

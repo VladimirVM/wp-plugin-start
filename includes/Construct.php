@@ -25,8 +25,6 @@ class Construct
 //	static $basename = '';
 //	static $template_folder = 'templates';
 //	static $media_folder = 'media';
-//	static $template_url = '';
-//	static $template_dir = '';
 //	static $media_url = '';
 //	static $media_dir = '';
 //	static $version = 1.0;
@@ -48,16 +46,16 @@ class Construct
 
 		if (!empty($config)) {
 			foreach ($config as $key => $value) {
-				if (property_exists(__CLASS__, $key)) {
+				if (property_exists(get_called_class(), $key)) {
 					static::$$key = $value;
 				}
 			}
 		}
 
-		static::$template_dir = static::$dir . '/' . static::$template_folder;
-		static::$template_url = static::$url . '/' . static::$template_folder;
-		static::$media_dir = static::$dir . '/' . static::$media_folder;
-		static::$media_url = static::$url . '/' . static::$media_folder;
+		static::dir('template', static::$template_folder);
+		static::url('template', static::$template_folder);
+		static::dir('media', static::$media_folder);
+		static::url('media', static::$media_folder);
 
 		static::$basename = plugin_basename($main_file);
 
@@ -66,7 +64,7 @@ class Construct
 		} else {
 			static::$_settings = static::$dir . '/' . static::$_settings;
 		}
-		
+
 		static::$instant = $this;
 
 		// @todo Control
@@ -89,14 +87,14 @@ class Construct
 		} else {
 			$this->initFront();
 		}
-		
+
 		Media::init();
 
 	}
 
 	public function initAdmin()
 	{
-		
+
 		AdminPage::init($this);
 
 		$this->action_links();
@@ -117,7 +115,7 @@ class Construct
 	public function initFront()
 	{
 		$media = static::settings('media', []);
-		
+
 		if (!empty($media['front'])) {
 			Media::add($this, $media['front'], 'front');
 		}
@@ -134,7 +132,7 @@ class Construct
 
 	static function template($names, $find_in_theme = true)
 	{
-		
+
 		$template = false;
 		if ($find_in_theme) {
 			$_names = [];
@@ -146,7 +144,7 @@ class Construct
 
 		if (!$template) {
 			foreach ((array)$names as $name) {
-				$file = static::$template_dir . '/' . $name;
+				$file = static::dir('template') . '/' . $name;
 
 				if (is_file($file)) {
 					$template = $file;
@@ -157,7 +155,7 @@ class Construct
 
 		if (!$template) {
 			foreach ((array)$names as $name) {
-				$file = __DIR__ . '/../templates/' . $name;
+				$file = WP_PLUGIN_START_DIR . '/templates/' . $name;
 
 				if (is_file($file)) {
 					$template = $file;

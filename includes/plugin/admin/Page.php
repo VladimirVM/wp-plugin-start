@@ -115,7 +115,15 @@ class Page
 
 	function render()
 	{
-		include $this->plugin::template('admin/page.php', false);
+		$templates = [];
+		if (!empty($this->settings['template'])) {
+		    $templates = (array)$this->settings['template'];
+		}
+		$templates[] = 'admin/page.php';
+		
+		$template = $this->plugin::template($templates, false);
+		
+		include $template;
 	}
 
 
@@ -233,9 +241,9 @@ class Page
 		}
 
 		if (empty($args['template'])) {
-			$args['template'][] = 'page/page-' . $slug . '.php';
+			$args['template'][] = 'admin/page/' . $slug . '.php';
 		}
-
+		
 		$args['slug'] = $slug_and_key;
 
 		return $args;
