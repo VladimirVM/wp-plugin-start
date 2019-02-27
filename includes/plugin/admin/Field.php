@@ -61,7 +61,12 @@ class Field
 	{
 		$this->tag = $tag;
 		$this->attr = $attr;
-		$this->data = $data;
+		
+		if (is_scalar($data)) {
+		    $data = ['value' => $data];
+		}
+		
+		$this->data = (array)$data;
 	}
 
 	function render()
