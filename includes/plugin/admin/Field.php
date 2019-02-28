@@ -61,11 +61,11 @@ class Field
 	{
 		$this->tag = $tag;
 		$this->attr = $attr;
-		
+
 		if (is_scalar($data)) {
-		    $data = ['value' => $data];
+			$data = ['value' => $data];
 		}
-		
+
 		$this->data = (array)$data;
 	}
 
@@ -111,11 +111,11 @@ class Field
 		}
 
 		$node['attr']['name'] = self::name($node['name']);
-		
+
 		if ($node['tag'] === 'select' && isset($node['attr']['multiple'])) {
 			$node['attr']['name'] .= '[]';
 		}
-		
+
 		$node = self::prepareAttrValue($node, $self->data['value'] ?? null, $self->data['field']['items'] ?? []);
 
 		$attr = self::attr($node['attr']);
@@ -167,7 +167,7 @@ class Field
 				$node['value'] = $parts[0];
 				$node['label'] = $parts[1] ?? $node['value'];
 			}
-			
+
 			$node = self::prepareAttrValue($node, $self->data['value'][$key] ?? null);
 
 			$node['attr']['name'] = self::name($node['name']);
@@ -296,7 +296,7 @@ class Field
 		add_settings_field(
 			$data['id'],
 			$field['label'],
-			[self::class, 'build'],
+			[self::class, 'wpOptionBuild'],
 			$page_slug,
 			$key,
 			[
@@ -313,14 +313,44 @@ class Field
 
 	}
 
-	static function build($data)
+	static function wpOptionBuild($data)
 	{
 		static $values = [];
-		$tag = '';
-		$attr = $data['field']['attr'] ?? [];
 		$field = $data['field'] ?? [];
-		$section = $data['section'] ?? null;
-		$value = [];
+		$field['section'] = $data['section']->name ?? null;
+
+		$option_name = '';
+		if ($field['section']) {
+			$option_name = $field['section'];
+		} elseif (!empty($field['attr']['name'])) {
+			$field['attr']['name'] = (array)$field['attr']['name'];
+			$option_name = reset($field['attr']['name']);
+		} elseif (!empty($field['name'])) {
+			$field['name'] = (array)$field['name'];
+			$option_name = reset($field['name']);
+		}
+
+		if (isset($data['label_for'])) {
+			if (empty($field['attr'])) {
+				$field['attr'] = [];
+			}
+			$field['attr']['id'] = $data['label_for'];
+		}
+
+		if ($option_name && empty($values[$option_name])) {
+			$values[$option_name] = get_option($option_name);
+		}
+
+		echo self::build($field, $values);
+	}
+
+
+	static function build($field, $value = [])
+	{
+		$tag = '';
+		$data = [];
+		$attr = $field['attr'] ?? [];
+		$section_name = $field['section'] ?? null;
 		$name = [];
 
 		if (isset($field['tag'])) {
@@ -339,14 +369,10 @@ class Field
 
 		if (isset(self::$form_tags[$tag])) {
 
-			if (isset($data['label_for'])) {
-				$attr['id'] = $data['label_for'];
-			}
-
 			$name = [];
 
-			if (!empty($section->name)) {
-				$name[] = $section->name;
+			if ($section_name) {
+				$name[] = $section_name;
 			}
 
 			if (!empty($attr['name'])) {
@@ -355,22 +381,16 @@ class Field
 				$name = array_merge($name, (array)$field['name']);
 			}
 
-			if (!empty($name)) {
-				$first_name = reset($name);
-				if (!isset($values[$first_name])) {
-					$values[$first_name] = get_option($first_name, '');
-				}
-				$value[$first_name] = $values[$first_name];
-			}
-
 			$attr['name'] = $name;
 		}
 
-		$data['value'] = self::value($name, $value);
+		if (!empty($name) && !empty($value)) {
+			$data['value'] = self::value($name, $value);
+		}
 
 		$tag = new self($tag, $attr, $data);
 
-		echo $tag->render();
+		return $tag->render();
 	}
 
 
