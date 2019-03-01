@@ -12,21 +12,21 @@ class Form
 {
 	private $method = 'post';
 	private $fields = [];
-	private $data = [];
+	private $values = [];
 	private $validate = [];
 	
-	public function __construct($fields = [], $validate = [], $method = 'post', $data = null)
+	public function __construct($fields = [], $validate = [], $method = 'post', $values = null)
 	{
 		$this->method = strtolower($method);
 		$this->fields = $fields;
-		$this->data = $data;
+		$this->values = $values;
 		$this->validate = $validate;
 		
-		if ($this->data === null) {
+		if ($this->values === null) {
 		    if ($this->method === 'post') {
-		        $this->data = $_POST??[];
+		        $this->values = $_POST??[];
 		    } elseif ($this->method === 'get') {
-		        $this->data = $_GET??[];
+		        $this->values = $_GET??[];
 		    }
 		}
 	}
@@ -48,7 +48,13 @@ class Form
 	
 	function field ($name)
 	{
+	    if (empty($this->fields[$name])) {
+	        return ;
+	    }
 	    
+	    $field = Field::build($this->fields[$name], $this->values);
+	    
+	    return $field;
 	}
 	
 	
