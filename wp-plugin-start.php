@@ -20,6 +20,7 @@ include 'includes/autoloader.php';
 define('WP_PLUGIN_START_DIR', __DIR__);
 
 WPPluginStart\autoloader([
+	'Valitron/Validator' => __DIR__ . '/vendor/vlucas/valitron/src/Valitron/Validator.php',
 //    'ClassName' => __DIR__ . '/path/to/file'
 ]);
 

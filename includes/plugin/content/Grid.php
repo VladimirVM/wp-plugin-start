@@ -10,14 +10,13 @@ use \WPPluginStart\Plugin\Admin\Field;
 class Grid
 {
 
-	private $_data = [];
-	private $_structure = [];
-	private $row_i = 0;
+	private $data = [];
+	private $structure = [];
 
 	function __construct($structure, $data = [])
 	{
-		$this->_structure = $structure;
-		$this->_data = $data;
+		$this->structure = $structure;
+		$this->data = $data;
 
 	}
 
@@ -25,7 +24,7 @@ class Grid
 	{
 		$out = '<tr>';
 
-		foreach ($this->_structure as $i => $item) {
+		foreach ($this->structure as $i => $item) {
 			$class = 'head-col-' . $i;
 			if (!empty($item['key']) && is_string($item['key'])) {
 				$class .= ' head-col-key-' . ($item['key']);
@@ -47,10 +46,10 @@ class Grid
 	{
 		$out = '';
 
-		foreach ($this->_data as $row_i => $data) {
+		foreach ($this->data->toArray()['data'] as $row_i => $data) {
 //			$out = '<tr>';
 			$row = '';
-			foreach ($this->_structure as $col_i => $item) {
+			foreach ($this->structure as $col_i => $item) {
 				if (empty($item['col'])) {
 					continue;
 				}
@@ -71,23 +70,32 @@ class Grid
 						$content = call_user_func($item['col'], $data, $item, $this, $row_i, $col_i);
 					} elseif (is_scalar($item['col'])) {
 						if (isset($data[$item['col']])) {
-						    $content = $data[$item['col']];
+							$content = $data[$item['col']];
 						} else {
 							$content = $item['col'];
 						}
-						
+
 //						$content = ' ' . $content;
 					}
 				}
 
 				$row .= (new Field('td', $attr, $content))->render();
-				
+
 			}
 			$out .= (new Field('tr', ['class' => 'row-' . $row_i], $row))->render();
 		}
 
-		
+
 		return $out;
+	}
+
+	function paginate()
+	{
+		for ($i = 1, $count = $this->data->lastPage() + 1; $i < $count; $i++) {
+			?>
+			<a href="<?php echo \WPPluginStart\Helper::urlQuery(['paged' => $i], [], $_GET ?? []); ?>"><?php echo $i; ?></a>
+			<?php
+		}
 	}
 
 

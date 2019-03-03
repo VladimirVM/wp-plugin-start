@@ -49,5 +49,18 @@ class Helper
 
 		return $out;
 	}
+	
+	static function pageRefresh ($exit = true)
+	{
+		if (headers_sent()) {
+		    echo '<script>window.location.reload(true);</script>';
+		} else {
+			header("Refresh:0");
+		}
+		if ($exit) {
+		    exit;
+		}
+	}
+	
 
 }

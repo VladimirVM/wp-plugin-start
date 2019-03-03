@@ -80,7 +80,9 @@ trait Build
 	static function notice($message, $type = 'warning', $class = '')
 	{
 		$class .= 'notice notice-' . $type;
-		static::$_notice[] .= sprintf('<div class="%1$s"><p>%2$s</p></div>', esc_attr($class), esc_html($message));
+		$notice = sprintf('<div class="%1$s"><p>%2$s</p></div>', esc_attr($class), esc_html($message));
+		static::$_notice[] .= $notice;
+		return $notice;
 	}
 
 

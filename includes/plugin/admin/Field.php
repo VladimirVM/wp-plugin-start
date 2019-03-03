@@ -117,7 +117,7 @@ class Field
 		}
 
 		$node = self::prepareAttrValue($node, $self->data['value'] ?? null, $self->data['field']['items'] ?? []);
-
+		
 		$attr = self::attr($node['attr']);
 
 		$out = sprintf($template, $self->tag, $attr, $node['content']);
@@ -190,8 +190,10 @@ class Field
 	{
 //		$value = self::value($node['name'], $value);
 
-		if (isset($node['attr']['type'])) {
-			$node['attr']['value'] = $value;
+		if (isset($node['attr']['type']) && $node['tag'] === 'input') {
+			if ($value !== null) {
+				$node['attr']['value'] = $value;
+			}
 			if (($node['attr']['type'] === 'radio' || $node['attr']['type'] === 'checkbox')) {
 				if ($value === $node['value']) {
 					$node['attr']['checked'] = true;
