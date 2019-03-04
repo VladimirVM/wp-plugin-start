@@ -1,0 +1,8 @@
+.media-button-field-container {
+	
+}
+
+.media-button-field-container .image img {
+	max-width: 100%;
+	vertical-align: bottom;
+}

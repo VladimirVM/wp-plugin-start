@@ -130,8 +130,7 @@ class Form
 		if (empty($data['name']) && empty($data['attr']['name'])) {
 			$data['name'] = $name;
 		}
-
-
+		
 		$field = Field::build($data, $this->values);
 		
 		if ((isset($data['type']) && $data['type'] === 'hidden') || (isset($data['attr']['type']) && $data['attr']['type'] === 'hidden')) {

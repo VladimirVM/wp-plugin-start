@@ -45,8 +45,9 @@ class Field
 		'select' => true,
 	];
 	static $renders = [
-		'default' => [__CLASS__, 'renderFormTag'],
-		'list' => [__CLASS__, 'renderListTags'],
+		'wp-media-image' => [__CLASS__, 'renderWPMediaImage'],
+//		'default' => [__CLASS__, 'renderFormTag'],
+//		'list' => [__CLASS__, 'renderListTags'],
 	];
 
 	private $tag = '';
@@ -71,10 +72,14 @@ class Field
 
 	function render()
 	{
-		if (isset($this->data['field']['items']) && $this->tag !== 'select') {
-			return self::renderListTags($this);
+		if (!empty(static::$renders[$this->tag])) {
+			return call_user_func(static::$renders[$this->tag], $this);
 		}
-		return self::renderFormTag($this);
+
+		if (isset($this->data['field']['items']) && $this->tag !== 'select') {
+			return static::renderListTags($this);
+		}
+		return static::renderFormTag($this);
 	}
 
 	/**
@@ -94,7 +99,7 @@ class Field
 			'value' => null,
 			'label' => '',
 			'content' => '',
-			'attr' => $self->attr
+			'attr' => $self->attr,
 		];
 
 		$template = '<%1$s %2$s>';
@@ -106,18 +111,18 @@ class Field
 			$node['name'] = $node['attr']['name'];
 		}
 
-		if (!empty($node['attr']['value'])) {
-			$node['value'] = $node['attr']['value'];
-		}
-
 		$node['attr']['name'] = self::name($node['name']);
 
 		if ($node['tag'] === 'select' && isset($node['attr']['multiple'])) {
 			$node['attr']['name'] .= '[]';
 		}
 
+		if (!empty($node['attr']['value'])) {
+			$node['value'] = $node['attr']['value'];
+		}
+
 		$node = self::prepareAttrValue($node, $self->data['value'] ?? null, $self->data['field']['items'] ?? []);
-		
+
 		$attr = self::attr($node['attr']);
 
 		$out = sprintf($template, $self->tag, $attr, $node['content']);
@@ -128,6 +133,73 @@ class Field
 
 		return $out;
 	}
+
+	/**
+	 * @param Field $self
+	 *
+	 * @return string
+	 */
+	static function renderWPMediaImage($self)
+	{
+		$node = [
+			'tag' => 'div',
+//			'name' => [],
+			'value' => null,
+			'content' => '',
+			'attr' => $self->attr,
+		];
+
+		$template = '<%1$s %2$s>%3$s</%1$s>';
+//
+//		if (!empty($node['attr']['name'])) {
+//			$node['name'] = $node['attr']['name'];
+//		}
+//
+//		$node['attr']['name'] = self::name($node['name']);
+
+		if (!empty($node['attr']['value'])) {
+			$node['value'] = $node['attr']['value'];
+		}
+
+		$image_src = $self->data['field']['src'] ?? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D';
+		$image_id = $self->data['field']['value'] ?? null;
+		$image_width = (int)($self->data['field']['width'] ?? 50);
+		$image_height = (int)($self->data['field']['height'] ?? 50);
+		$image_data = wp_get_attachment_image_src($image_id, array($image_width, $image_height));
+		
+
+		if (!empty($image_data[0])) {
+			$image_src = $image_data[0];
+		} else {
+			$image_id = null;
+		}
+
+		$content = '<input type="hidden" name="%2$s" value="%3$s" class="js-media-button-id">
+		<span class="wrap" style="display: inline-block">
+		<span class="image" style="display: inline-block; height: %4$s; width: %5$s;"><img src="%1$s" class="js-media-button-image"></span>
+		<span class="acton" style="display: inline-block">
+		<button type="button" class="button js-media-button-change-image"><div class="dashicons-before dashicons-plus"></div></button>
+		<button type="button" class="button js-media-button-remove-image"><div class="dashicons-before dashicons-no"></div></button>
+		</span>
+		</span>';
+
+		$node['content'] = sprintf($content, $image_src, $self->data['field']['name'] ?? null, $image_id, $image_height . 'px', $image_width . 'px');
+
+		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
+		$node['attr']['class'][] = 'media-button-field-container';
+		$node['attr']['class'][] = 'js-media-button';
+
+		$attr = self::attr($node['attr']);
+
+		$out = sprintf($template, $node['tag'], $attr, $node['content']);
+
+		if (isset($self->data['field']['description'])) {
+			$out .= '<p class="description">' . $self->data['field']['description'] . '</p>';
+		}
+
+		return $out;
+	}
+
 
 	static function renderListTags($self)
 	{
@@ -145,6 +217,9 @@ class Field
 
 		$name = !empty($attr['name']) ? (array)$attr['name'] : [];
 		$out = '';
+
+		$values = array_flip($self->data['value'] ?? []);
+
 		foreach ($self->data['field']['items'] as $key => $item) {
 			$node = [
 				'tag' => $self->tag,
@@ -152,7 +227,7 @@ class Field
 				'value' => '',
 				'label' => '',
 				'content' => '',
-				'attr' => $attr
+				'attr' => $attr,
 			];
 
 			if (is_array($item)) {
@@ -168,7 +243,7 @@ class Field
 				$node['label'] = $parts[1] ?? $node['value'];
 			}
 
-			$node = self::prepareAttrValue($node, $self->data['value'][$key] ?? null);
+			$node = self::prepareAttrValue($node, $values[$node['value']] ?? null);
 
 			$node['attr']['name'] = self::name($node['name']);
 
@@ -195,7 +270,7 @@ class Field
 				$node['attr']['value'] = $value;
 			}
 			if (($node['attr']['type'] === 'radio' || $node['attr']['type'] === 'checkbox')) {
-				if ($value === $node['value']) {
+				if ($value !== null) {
 					$node['attr']['checked'] = true;
 				}
 				$node['attr']['value'] = $node['value'];
@@ -283,6 +358,9 @@ class Field
 			} elseif ($value === null) {
 				continue;
 			} else {
+				if ($name === 'class' && is_array($value)) {
+					$value = implode(' ', $value);
+				}
 				$out .= ' ' . $name . '="' . esc_attr($value) . '" ';
 			}
 		}
@@ -305,7 +383,7 @@ class Field
 				'label_for' => $data['id'],
 				'field' => $field,
 				'key' => $key,
-				'section' => $section
+				'section' => $section,
 			]
 		);
 
@@ -343,17 +421,22 @@ class Field
 			$values[$option_name] = get_option($option_name);
 		}
 
-		echo self::build($field, $values);
+		echo self::build($field, $values, $data);
 	}
 
 
-	static function build($field, $value = [])
+	static function build($field, $value = [], $data = [])
 	{
 		$tag = '';
-		$data = [];
+//		$data = [];
+
 		$attr = $field['attr'] ?? [];
 		$section_name = $field['section'] ?? null;
 		$name = [];
+
+		if (empty($data['field'])) {
+			$data['field'] = $field;
+		}
 
 		if (isset($field['tag'])) {
 			$tag = $field['tag'];
@@ -371,8 +454,6 @@ class Field
 
 		if (isset(self::$form_tags[$tag])) {
 
-			$name = [];
-
 			if ($section_name) {
 				$name[] = $section_name;
 			}
@@ -385,6 +466,7 @@ class Field
 
 			$attr['name'] = $name;
 		}
+
 
 		if (!empty($name) && !empty($value)) {
 			$data['value'] = self::value($name, $value);

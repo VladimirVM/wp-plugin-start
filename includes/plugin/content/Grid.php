@@ -53,17 +53,20 @@ class Grid
 				if (empty($item['col'])) {
 					continue;
 				}
-				$attr = [];
+				$attr = $item['attr']??[];
 				$content = '';
-
-				$class = 'body-col-' . $col_i;
-				if (!empty($item['key']) && is_string($item['key'])) {
-					$class .= ' body-col-key-' . ($item['key']);
-				} elseif (!empty($item['col']) && is_string($item['col'])) {
-					$class .= ' body-col-name-' . ($item['col']);
+				
+				if (empty($attr['class'])) {
+					$attr['class'] = [];
 				}
-				$attr['class'] = $class;
+				$attr['class'] = (array)$attr['class'];
 
+				$attr['class'][] = 'body-col-' . $col_i;
+				if (!empty($item['key']) && is_string($item['key'])) {
+					$attr['class'][] = ' body-col-key-' . ($item['key']);
+				} elseif (!empty($item['col']) && is_string($item['col'])) {
+					$attr['class'][] = ' body-col-name-' . ($item['col']);
+				}
 
 				if (!empty($item['col'])) {
 					if (is_callable($item['col'])) {
