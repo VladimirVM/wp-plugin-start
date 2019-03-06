@@ -166,6 +166,43 @@ class Construct
 
 		return $template;
 	}
+	
+	static function component($names, $find_in_theme = true)
+	{
+
+		$template = false;
+		if ($find_in_theme) {
+			$_names = [];
+			foreach ((array)$names as $name) {
+				$_names[] = static::$key . '/' . $name;
+			}
+			$template = locate_template($_names);
+		}
+
+		if (!$template) {
+			foreach ((array)$names as $name) {
+				$file = static::dir('template') . '/' . $name;
+
+				if (is_file($file)) {
+					$template = $file;
+					break;
+				}
+			}
+		}
+
+		if (!$template) {
+			foreach ((array)$names as $name) {
+				$file = WP_PLUGIN_START_DIR . '/templates/' . $name;
+
+				if (is_file($file)) {
+					$template = $file;
+					break;
+				}
+			}
+		}
+
+		return $template;
+	}
 
 	function action_links()
 	{
