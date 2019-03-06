@@ -26,6 +26,8 @@ class Page
 	];
 	private $blocks = [];
 	static $slug = '';
+	
+	public $data = [];
 
 	/**
 	 * @var array self::$default
@@ -165,6 +167,13 @@ class Page
 		
 		if ($this->isLoad()) {
 			$this->media();
+			
+			$controller = $this->plugin::component('admin/page/' . $this->settings['slug'] . '/controller');
+			
+			if ($controller) {
+			    include $controller;
+			}
+			
 		}
 
 		// add check for current page and save on option page

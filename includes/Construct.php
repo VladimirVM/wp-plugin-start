@@ -166,42 +166,76 @@ class Construct
 
 		return $template;
 	}
-	
-	static function component($names, $find_in_theme = true)
+
+	/**
+	 * page/admin/%name%/[controller|grid.view|form.view]
+	 *
+	 * @param string|array $components
+	 * @param bool $find_in_theme
+	 * @param bool $find_default
+	 * @return bool|string
+	 */
+	static function component($components, $find_in_theme = true, $find_default = true)
 	{
 
-		$template = false;
+		$components = (array)$components;
+		$components_template = [];
 		if ($find_in_theme) {
-			$_names = [];
-			foreach ((array)$names as $name) {
-				$_names[] = static::$key . '/' . $name;
+
+			foreach ($components as $component) {
+				$components_template = static::$key . '/' . $component . '.php';
 			}
-			$template = locate_template($_names);
-		}
-
-		if (!$template) {
-			foreach ((array)$names as $name) {
-				$file = static::dir('template') . '/' . $name;
-
-				if (is_file($file)) {
-					$template = $file;
-					break;
-				}
+			
+			$template = locate_template($components_template);
+			if ($template) {
+				return $template;
 			}
 		}
 
-		if (!$template) {
-			foreach ((array)$names as $name) {
-				$file = WP_PLUGIN_START_DIR . '/templates/' . $name;
+//		$template = static::dir('component') . '/' . $components;
+		$components_plugin = [];
+		$components_defaults = [];
+		foreach ($components as $component) {
+			$components_plugin[] = static::dir('component') . '/' . $component . '.php';
 
-				if (is_file($file)) {
-					$template = $file;
-					break;
-				}
+			if (static::class !== '\\WPPluginStart\\Plugin') {
+				$components_plugin[] = Plugin::dir('component') . '/' . $component . '.php';
+			}
+			
+			if (!$find_default) {
+			    continue;
+			}
+
+			$component_default = explode('/', str_replace('\\', '/', $component), 4);
+			$component_default[2] = 'default';
+			$component_default = implode('/', $component_default);
+
+			$components_defaults[] = static::dir('component') . '/' . $component_default . '.php';
+			if (static::class !== '\\WPPluginStart\\Plugin') {
+				$components_defaults[] = Plugin::dir('component') . '/' . $component_default . '.php';
+			}
+		}
+		
+		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
+		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($components_template, true), 3, 'UTF-8');
+		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($components_plugin, true), 3, 'UTF-8');
+		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($components_defaults, true), 3, 'UTF-8');
+		echo '</pre>';
+		
+		
+		foreach ($components_plugin as $template) {
+			if (is_file($template)) {
+			    return $template;
 			}
 		}
 
-		return $template;
+		foreach ($components_defaults as $template) {
+			if (is_file($template)) {
+			    return $template;
+			}
+		}
+
+		return false;
 	}
 
 	function action_links()
