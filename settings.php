@@ -28,8 +28,8 @@ $settings = [
 //        'front_end_routs' => WPPluginStart\Plugin\Route::generateItem('front_end_routs_path'),
 	],
 	'action_links' => [
-		'Some html Data',
-		['link' => '#link_to', 'title' => 'Settings', 'target' => true]
+//		'Some html Data',
+//		['link' => '#link_to', 'title' => 'Settings', 'target' => true]
 	],
 	'media' => [
 //		'js' => [
@@ -57,7 +57,7 @@ $settings = [
 //			'js' => [Media::key('admin.js')],
 //			'css' => [Media::key('admin.css')],
 //		]),
-		AdminPage::generateItem('Plugin\Admin\Page 2'),
+//		AdminPage::generateItem('Plugin\Admin\Page 2'),
 //		AdminPage::generateItem('Plugin\Admin\Page 2 sub', 'Plugin\Admin\Page 2'),
 //		AdminPage::generateItem('Plugin\Admin\Page tools.php sub', 'tools.php'),
 	],
