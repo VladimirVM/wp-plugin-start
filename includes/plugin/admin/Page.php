@@ -2,8 +2,8 @@
 
 namespace WPPluginStart\Plugin\Admin;
 
+
 use WPPluginStart\Plugin;
-use WPPluginStart\Plugin\Settings;
 
 class Page
 {
@@ -22,22 +22,23 @@ class Page
 	];
 	static $hooks = [];
 	static $blocks_type = [
-		'option' => ['\WPPluginStart\Plugin\Admin\Option', 'build'],
+		'option' => [Option::class, 'build'],
 	];
-	private $blocks = [];
-	static $slug = '';
+	public $blocks = [];
+	public $slug = '';
 	
 	public $data = [];
 
 	/**
 	 * @var array self::$default
 	 */
-	private $settings = [];
+	public $settings = [];
 	/**
-	 * @var Plugin
+	 * @var \WPPluginStart\Plugin
 	 */
-	private $plugin = null;
+	public $plugin = null;
 
+	public $views = [];
 
 	function __construct($settings, $plugin)
 	{
@@ -59,7 +60,12 @@ class Page
 		if ($this->settings['render'] === null) {
 			$this->settings['render'] = [$this, 'render'];
 		}
-		static::$slug = $this->settings['slug'];
+		$this->slug = $this->settings['slug'];
+
+		$this->views = [
+			'admin/page/' . $this->settings['slug'] . '/view',
+		];
+
 	}
 
 	function media()
@@ -78,7 +84,7 @@ class Page
 			$blocks = $this->plugin::settings('blocks', []);
 
 			foreach ($this->settings['blocks'] as $key => $name) {
-				$args = null;
+				$args = [];
 
 				if (!is_scalar($name)) {
 					$args = $name;
@@ -109,7 +115,9 @@ class Page
 					continue;
 				}
 
-				$this->blocks[] = call_user_func($build, $name, $block, $args);
+				$block['plugin_key'] = $this->plugin::$key;
+
+				$this->blocks[] = call_user_func($build, $name, $block, $this->slug, $args);
 
 			}
 		}
@@ -117,15 +125,22 @@ class Page
 
 	function render()
 	{
-		$templates = [];
-		if (!empty($this->settings['template'])) {
-		    $templates = (array)$this->settings['template'];
+		
+		$views = $this->plugin::component($this->views, false);
+		
+		if ($views) {
+		    include $views;
 		}
-		$templates[] = 'admin/page.php';
 		
-		$template = $this->plugin::template($templates, false);
-		
-		include $template;
+//		$templates = [];
+//		if (!empty($this->settings['template'])) {
+//		    $templates = (array)$this->settings['template'];
+//		}
+//		$templates[] = 'admin/page.php';
+//		
+//		$template = $this->plugin::template($templates, false);
+//		
+//		include $template;
 	}
 
 
@@ -187,7 +202,9 @@ class Page
 		return ($page === $this->settings['slug']);
 	}
 
-
+	/**
+	 * @param $plugin Plugin
+	 */
 	static function init($plugin)
 	{
 		$pages = $plugin::settings('pages', []);

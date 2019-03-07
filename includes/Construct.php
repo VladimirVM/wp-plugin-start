@@ -216,13 +216,6 @@ class Construct
 			}
 		}
 		
-		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
-		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($components_template, true), 3, 'UTF-8');
-		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($components_plugin, true), 3, 'UTF-8');
-		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($components_defaults, true), 3, 'UTF-8');
-		echo '</pre>';
-		
-		
 		foreach ($components_plugin as $template) {
 			if (is_file($template)) {
 			    return $template;

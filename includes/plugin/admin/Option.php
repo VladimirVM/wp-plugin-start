@@ -19,12 +19,14 @@ class Option
 	public $args = [];
 	public $fields = [];
 	public $description = '';
+	public $plugin_key = '';
 
 
-	function __construct($option_key, $settings = [])
+	function __construct($option_key, $settings = [], $uid = null)
 	{
 		$this->key = $option_key;
-
+		$this->uid = $uid;
+		
 		foreach ($settings as $key => $value) {
 			$this->{$key} = $value;
 		}
@@ -36,7 +38,7 @@ class Option
 	function prepare()
 	{
 		if ($this->name === null) {
-			$this->name = Settings::$plugin_key . '_' . $this->key;
+			$this->name = $this->plugin_key . '_' . $this->key;
 		}
 		if ($this->uid === null) {
 			$this->uid = self::$page_slug;
@@ -62,7 +64,7 @@ class Option
 		if (!empty($this->fields)) {
 			foreach ($this->fields as $field) {
 
-				$id = Settings::$plugin_key . '_' . $field['name'];
+				$id = $this->plugin_key . '_' . $field['name'];
 
 				Field::init($this->uid, $section_key, [
 					'section' => $this,
@@ -85,10 +87,9 @@ class Option
 	}
 	
 	
-	static function build ($key, $settings, $args = [])
+	static function build ($key, $settings, $uid, $args = [])
 	{
-		self::$page_slug = Page::$slug;
-		$self = new self($key, $settings);
+		$self = new self($key, $settings, $uid);
 		
 		return [$self, 'render'];
 	}
