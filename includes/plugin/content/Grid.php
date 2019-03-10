@@ -45,7 +45,6 @@ class Grid
 	function body()
 	{
 		$out = '';
-
 		foreach ($this->data->toArray()['data'] as $row_i => $data) {
 //			$out = '<tr>';
 			$row = '';
@@ -53,9 +52,9 @@ class Grid
 				if (empty($item['col'])) {
 					continue;
 				}
-				$attr = $item['attr']??[];
+				$attr = $item['attr'] ?? [];
 				$content = '';
-				
+
 				if (empty($attr['class'])) {
 					$attr['class'] = [];
 				}
@@ -94,9 +93,13 @@ class Grid
 
 	function paginate()
 	{
+		$name = $this->data->getOptions()['pageName'];
+		$page_id = $this->data->currentPage();
 		for ($i = 1, $count = $this->data->lastPage() + 1; $i < $count; $i++) {
+			$class = 'button' . ($i === $page_id ? ' disabled' : '');
 			?>
-			<a href="<?php echo \WPPluginStart\Helper::urlQuery(['paged' => $i], [], $_GET ?? []); ?>"><?php echo $i; ?></a>
+			<a href="<?php echo \WPPluginStart\Helper::urlQuery([$name => $i], [], $_GET ?? []); ?>"
+			   class="<?php echo $class; ?>"><?php echo $i; ?></a>
 			<?php
 		}
 	}

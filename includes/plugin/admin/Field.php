@@ -46,6 +46,7 @@ class Field
 	];
 	static $renders = [
 		'wp-media-image' => [__CLASS__, 'renderWPMediaImage'],
+		'wp-auto-complete' => [__CLASS__, 'renderWPAutoComplete'],
 //		'default' => [__CLASS__, 'renderFormTag'],
 //		'list' => [__CLASS__, 'renderListTags'],
 	];
@@ -150,12 +151,7 @@ class Field
 		];
 
 		$template = '<%1$s %2$s>%3$s</%1$s>';
-//
-//		if (!empty($node['attr']['name'])) {
-//			$node['name'] = $node['attr']['name'];
-//		}
-//
-//		$node['attr']['name'] = self::name($node['name']);
+
 
 		if (!empty($node['attr']['value'])) {
 			$node['value'] = $node['attr']['value'];
@@ -166,7 +162,7 @@ class Field
 		$image_width = (int)($self->data['field']['width'] ?? 50);
 		$image_height = (int)($self->data['field']['height'] ?? 50);
 		$image_data = wp_get_attachment_image_src($image_id, array($image_width, $image_height));
-		
+
 
 		if (!empty($image_data[0])) {
 			$image_src = $image_data[0];
@@ -178,13 +174,91 @@ class Field
 		<span class="wrap" style="display: inline-block">
 		<span class="image" style="display: inline-block; height: %4$s; width: %5$s;"><img src="%1$s" class="js-media-button-image"></span>
 		<span class="acton" style="display: inline-block">
-		<button type="button" class="button js-media-button-change-image"><div class="dashicons-before dashicons-plus"></div></button>
-		<button type="button" class="button js-media-button-remove-image"><div class="dashicons-before dashicons-no"></div></button>
+		<button type="button" class="button button-with-icon js-media-button-change-image"><div class="dashicons-before dashicons-plus"></div></button>
+		<button type="button" class="button button-with-icon js-media-button-remove-image"><div class="dashicons-before dashicons-no"></div></button>
 		</span>
 		</span>';
 
 		$node['content'] = sprintf($content, $image_src, $self->data['field']['name'] ?? null, $image_id, $image_height . 'px', $image_width . 'px');
 
+		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
+		$node['attr']['class'][] = 'media-button-field-container';
+		$node['attr']['class'][] = 'js-media-button';
+
+		$attr = self::attr($node['attr']);
+
+		$out = sprintf($template, $node['tag'], $attr, $node['content']);
+
+		if (isset($self->data['field']['description'])) {
+			$out .= '<p class="description">' . $self->data['field']['description'] . '</p>';
+		}
+
+		return $out;
+	}
+
+	/**
+	 * @param Field $self
+	 *
+	 * @return string
+	 */
+	static function renderWPAutoComplete($self)
+	{
+		$node = [
+			'tag' => 'div',
+//			'name' => [],
+			'value' => null,
+			'content' => '',
+			'attr' => $self->attr,
+		];
+
+		$template = '<%1$s %2$s>%3$s</%1$s>';
+
+
+		if (!empty($node['attr']['value'])) {
+			$node['value'] = $node['attr']['value'];
+		}
+
+//		$image_src = $self->data['field']['src'] ?? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D';
+//		$image_id = $self->data['field']['value'] ?? null;
+//		$image_width = (int)($self->data['field']['width'] ?? 50);
+//		$image_height = (int)($self->data['field']['height'] ?? 50);
+//		$image_data = wp_get_attachment_image_src($image_id, array($image_width, $image_height));
+
+
+//		if (!empty($image_data[0])) {
+//			$image_src = $image_data[0];
+//		} else {
+//			$image_id = null;
+//		}
+
+		$content = '
+<div>
+<table>
+<tr>
+<td><input type="text" class="js-auto-complete-field-text"/><input type="hidden" class="js-auto-complete-field-id"/></td>
+<td><button class="button button-with-icon js-list-add-item" type="button"><span class="dashicons-before dashicons-plus"></span></button></td>
+</tr>
+</table>
+<ul class="js-list-items">%1$s</ul>
+<script type="text/template" class="js-list-item-template" >%2$s</script>
+</div>
+';
+
+		$list_item_template = '<li class="js-list-item">
+<span class="js-list-remove-item"><span class="dashicons-before dashicons-no"></span></span>
+<input type="hidden" name="{{name}}[]" value="{{value}}"/> {{title}}
+</li>';
+		$list_item_template = str_replace('{{name}}', $self->data['field']['name'], $list_item_template);
+		$list_items = '';
+		
+		if (!empty($self->data['items'])) {
+			foreach ($self->data['items'] as $list_id => $list_item) {
+				$list_items .= str_replace(['{{value}}', '{{title}}'], [$list_id, $list_item], $list_item_template);
+			}
+		}
+
+		$node['content'] = sprintf($content, $list_items, htmlspecialchars($list_item_template,3, 'UTF-8'));
+		
 		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
 		$node['attr']['class'][] = 'media-button-field-container';
 		$node['attr']['class'][] = 'js-media-button';
