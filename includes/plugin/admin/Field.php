@@ -183,7 +183,7 @@ class Field
 
 		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
 		$node['attr']['class'][] = 'media-button-field-container';
-		$node['attr']['class'][] = 'js-media-button';
+		$node['attr']['class'][] = 'js-field-media-button';
 
 		$attr = self::attr($node['attr']);
 
@@ -198,6 +198,8 @@ class Field
 
 	/**
 	 * @param Field $self
+	 * 
+	 * 
 	 *
 	 * @return string
 	 */
@@ -233,7 +235,7 @@ class Field
 
 		$content = '
 <div>
-<table>
+<table class="table-without-padding">
 <tr>
 <td><input type="text" class="js-auto-complete-field-text"/><input type="hidden" class="js-auto-complete-field-id"/></td>
 <td><button class="button button-with-icon js-list-add-item" type="button"><span class="dashicons-before dashicons-plus"></span></button></td>
@@ -261,7 +263,7 @@ class Field
 		
 		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
 		$node['attr']['class'][] = 'media-button-field-container';
-		$node['attr']['class'][] = 'js-media-button';
+		$node['attr']['class'][] = 'js-field-auto-complete';
 
 		$attr = self::attr($node['attr']);
 

@@ -6,7 +6,7 @@
  */
 (function ($, wp) {
 	$(function () {
-		var mediaButton = function ($content, args) {
+		var fieldMediaButton = function ($content, args) {
 			args = $.extend({
 				$image: $('.js-media-button-image', $content),
 				$id: $('.js-media-button-id', $content),
@@ -63,9 +63,9 @@
 		};
 
 
-		$('.js-media-button').each(function () {
+		$('.js-field-media-button').each(function () {
 			var $this = $(this);
-			mediaButton($this, $this.data());
+			fieldMediaButton($this, $this.data());
 		});
 
 	});
