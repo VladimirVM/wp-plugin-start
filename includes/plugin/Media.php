@@ -193,8 +193,16 @@ class Media
 		if (empty($args['key'])) {
 			$args['key'] = self::key($plugin::$key . '--'  . (!is_numeric($key) ? $key : $args['file']));
 		}
+		
+		if (strpos($args['file'], '.') === false) {
+		    $args['key'] = $args['file'];
+		    $args['file'] = '';
+		    $args['deps'] = [];
+		    $args['ver'] = false;
+		    $args['in_footer'] = false;
+		}
 
-		if (is_file($plugin::dir('media') . $folder . $args['file'])) {
+		if ($args['file'] && is_file($plugin::dir('media') . $folder . $args['file'])) {
 			$args['file'] = $plugin::url('media') . $folder . $args['file'];
 		}
 

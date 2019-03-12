@@ -8,7 +8,7 @@
 
 (function ($, plugin) {
 	var fieldAutoComplete = function ($content, args) {
-		args = $.extend({
+		args = $.extend(true, {
 			$content: $content,
 			class: {
 				listRemoveItem: '.js-list-remove-item',
@@ -19,6 +19,16 @@
 				listItemTemplate: '.js-list-item-template',
 			},
 			settings: {
+				select: function (e, ui) {
+					if (ui.item) {
+						var template = args.template;
+
+						template = template.replace('{{value}}', ui.item.user_id).replace('{{title}}', ui.item.name + ' ' + ui.item.surname + ' (' + ui.item.email + ')');
+
+						args.$listItems.append(template);
+
+					}
+				},
 				source: null,
 				minLength: 2
 			},
@@ -29,7 +39,7 @@
 			$listItemTemplate: null,
 
 			template: ''
-		}, args, true);
+		}, args);
 
 		args.$fieldText = $('.js-auto-complete-field-text', $content);
 		args.$fieldId = $('.js-auto-complete-field-id', $content);
@@ -37,14 +47,14 @@
 		args.$listItems = $('.js-list-items', $content);
 		args.$listItemTemplate = $('.js-list-item-template', $content);
 
-		args.template = args.$listItemTemplate.text();
+		args.template = $('<textarea />').html(args.$listItemTemplate.text()).text();
 
 		var app = {
 			args: args,
 
 			init: function () {
 				app.event();
-				args.settings
+				app.autoComplete();
 			},
 
 			event: function () {
@@ -54,7 +64,6 @@
 				});
 
 				$content.on('click', args.class.listAddItem, function () {
-					var $this = $(this);
 
 					var template = args.template;
 
@@ -68,16 +77,19 @@
 			},
 
 			autoComplete: function () {
-				args.$fieldText.autocomplete(args.settings /*{
-					minLength: 2,
-					select: function (event, ui) {
-
-					}
-				}*/);
+				
+				args.$fieldText
+					.autocomplete(args.settings)
+					.autocomplete('instance')._renderItem = function (ul, item) {
+					return $('<li>')
+						.text(item.name + ' ' + item.surname + ' (' + item.email + ')')
+						.appendTo(ul);
+				};
+				
 			},
 
 			select: function (event, ui) {
-			     
+
 			}
 
 		};
