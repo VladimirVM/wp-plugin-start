@@ -184,7 +184,8 @@ class Field
 		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
 		$node['attr']['class'][] = 'media-button-field-container';
 		$node['attr']['class'][] = 'js-field-media-button';
-
+		
+		unset($node['attr']['name']);
 		$attr = self::attr($node['attr']);
 
 		$out = sprintf($template, $node['tag'], $attr, $node['content']);
@@ -198,8 +199,8 @@ class Field
 
 	/**
 	 * @param Field $self
-	 * 
-	 * 
+	 *
+	 *
 	 *
 	 * @return string
 	 */
@@ -216,55 +217,47 @@ class Field
 		$template = '<%1$s %2$s>%3$s</%1$s>';
 
 
-		if (!empty($node['attr']['value'])) {
-			$node['value'] = $node['attr']['value'];
+		if (!empty($self->data['value'])) {
+			$node['value'] = $self->data['value'];
 		}
-
-//		$image_src = $self->data['field']['src'] ?? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D';
-//		$image_id = $self->data['field']['value'] ?? null;
-//		$image_width = (int)($self->data['field']['width'] ?? 50);
-//		$image_height = (int)($self->data['field']['height'] ?? 50);
-//		$image_data = wp_get_attachment_image_src($image_id, array($image_width, $image_height));
-
-
-//		if (!empty($image_data[0])) {
-//			$image_src = $image_data[0];
-//		} else {
-//			$image_id = null;
-//		}
 
 		$content = '
 <div>
-<table class="table-without-padding">
-<tr>
-<td><input type="text" class="js-auto-complete-field-text"/><input type="hidden" class="js-auto-complete-field-id"/></td>
-<td><button class="button button-with-icon js-list-add-item" type="button"><span class="dashicons-before dashicons-plus"></span></button></td>
-</tr>
-</table>
+<div class="field-wrap"><input type="text" class="js-auto-complete-field-text"/></div>
 <ul class="js-list-items">%1$s</ul>
-<script type="text/template" class="js-list-item-template" >%2$s</script>
 </div>
 ';
 
-		$list_item_template = '<li class="js-list-item">
+		$list_item_template = $self->data['template-list-item'] ?? '<li class="js-list-item">
 <span class="js-list-remove-item"><span class="dashicons-before dashicons-no"></span></span>
 <input type="hidden" name="{{name}}[]" value="{{value}}"/> {{title}}
 </li>';
-		$list_item_template = str_replace('{{name}}', $self->data['field']['name'], $list_item_template);
+		$list_item_template = str_replace('{{name}}', esc_attr($self->data['field']['name']), $list_item_template);
 		$list_items = '';
-		
-		if (!empty($self->data['items'])) {
-			foreach ($self->data['items'] as $list_id => $list_item) {
-				$list_items .= str_replace(['{{value}}', '{{title}}'], [$list_id, $list_item], $list_item_template);
+
+		if ($node['value']) {
+			foreach ($node['value'] as $list_id => $list_item) {
+				$list_items .= str_replace(
+					['{{value}}', '{{title}}'],
+					[$list_id, $list_item],
+					$list_item_template
+				);
 			}
 		}
 
-		$node['content'] = sprintf($content, $list_items, htmlspecialchars($list_item_template,3, 'UTF-8'));
-		
+		$node['content'] = sprintf($content, $list_items);
+
 		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
 		$node['attr']['class'][] = 'media-button-field-container';
 		$node['attr']['class'][] = 'js-field-auto-complete';
+		if (empty($node['attr']['data-settings'])) {
+			$node['attr']['data-settings'] = [];
+		}
+		if (empty($node['attr']['data-template'])) {
+			$node['attr']['data-template'] = $list_item_template;
+		}
 
+		unset($node['attr']['name']);
 		$attr = self::attr($node['attr']);
 
 		$out = sprintf($template, $node['tag'], $attr, $node['content']);
@@ -437,6 +430,9 @@ class Field
 				if ($name === 'class' && is_array($value)) {
 					$value = implode(' ', $value);
 				}
+				if (substr($name, 0, 5) === 'data-' && !is_scalar($value)) {
+					$value = json_encode($value);
+				}
 				$out .= ' ' . $name . '="' . esc_attr($value) . '" ';
 			}
 		}
@@ -528,7 +524,7 @@ class Field
 
 		}
 
-		if (isset(self::$form_tags[$tag])) {
+		if (isset(self::$form_tags[$tag]) || !empty($attr['name']) || !empty($field['name'])) {
 
 			if ($section_name) {
 				$name[] = $section_name;
@@ -547,6 +543,13 @@ class Field
 		if (!empty($name) && !empty($value)) {
 			$data['value'] = self::value($name, $value);
 		}
+		
+//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($name, true), 3, 'UTF-8');
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($value, true), 3, 'UTF-8');
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($data, true), 3, 'UTF-8');
+//		echo '</pre>';
+		
 
 		$tag = new self($tag, $attr, $data);
 

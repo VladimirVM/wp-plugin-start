@@ -8,46 +8,54 @@
 
 (function ($, plugin) {
 	var fieldAutoComplete = function ($content, args) {
+
 		args = $.extend(true, {
 			$content: $content,
 			class: {
 				listRemoveItem: '.js-list-remove-item',
 				autoCompleteFieldText: '.js-auto-complete-field-text',
-				autoCompleteFieldId: '.js-auto-complete-field-id',
-				listAddItem: '.js-list-add-item',
 				listItems: '.js-list-items',
-				listItemTemplate: '.js-list-item-template',
+				listItem: '.js-list-item'
 			},
 			settings: {
 				select: function (e, ui) {
 					if (ui.item) {
 						var template = args.template;
-
-						template = template.replace('{{value}}', ui.item.user_id).replace('{{title}}', ui.item.name + ' ' + ui.item.surname + ' (' + ui.item.email + ')');
+						
+						template = template
+							.replace('{{value}}', ui.item[args.idKey])
+							.replace('{{title}}', app.template(args.templateSelectedItem, ui.item));
 
 						args.$listItems.append(template);
 
 					}
 				},
 				source: null,
-				minLength: 2
+				minLength: 2,
+				messages: {
+					noResults: window.uiAutocompleteL10n.noResults,
+					results: function (number) {
+						if (number > 1) {
+							return window.uiAutocompleteL10n.manyResults.replace('%d', number);
+						}
+
+						return window.uiAutocompleteL10n.oneResult;
+					}
+				}
 			},
 			$fieldText: null,
-			$fieldId: null,
-			$addItem: null,
 			$listItems: null,
-			$listItemTemplate: null,
 
-			template: ''
+			idKey: 'id',
+
+			templateAutoCompleteItem: '{{name}}',
+			templateSelectedItem: '{{name}}',
+
+			template: '<span class="js-list-remove-item">&Cross;</span><input type="hidden" name="item[]" value="{{value}}"> {{title}}'
 		}, args);
 
-		args.$fieldText = $('.js-auto-complete-field-text', $content);
-		args.$fieldId = $('.js-auto-complete-field-id', $content);
-		args.$addItem = $('.js-list-add-item', $content);
-		args.$listItems = $('.js-list-items', $content);
-		args.$listItemTemplate = $('.js-list-item-template', $content);
-
-		args.template = $('<textarea />').html(args.$listItemTemplate.text()).text();
+		args.$fieldText = $(args.class.autoCompleteFieldText, $content);
+		args.$listItems = $(args.class.listItems, $content);
 
 		var app = {
 			args: args,
@@ -60,45 +68,41 @@
 			event: function () {
 				$content.on('click', args.class.listRemoveItem, function () {
 					var $this = $(this);
-					$this.closest('.js-list-item').remove();
+					$this.closest(args.class.listItem).remove();
 				});
 
-				$content.on('click', args.class.listAddItem, function () {
-
-					var template = args.template;
-
-					var value = args.$fieldId.val();
-					var title = args.$fieldText.val();
-
-					template = template.replace('{{value}}', value).replace('{{title}}', title);
-
-					args.$listItems.append(template);
-				});
 			},
 
 			autoComplete: function () {
-				
+
 				args.$fieldText
 					.autocomplete(args.settings)
-					.autocomplete('instance')._renderItem = function (ul, item) {
-					return $('<li>')
-						.text(item.name + ' ' + item.surname + ' (' + item.email + ')')
+					.autocomplete('instance')
+					._renderItem = function (ul, item) {
+					var content = app.template(args.templateAutoCompleteItem, item);
+
+					return $('<li>', {html: content})
 						.appendTo(ul);
 				};
-				
+
 			},
 
-			select: function (event, ui) {
+			template: function (html, values) {
+				$.each(values, function (k, v) {
+					html = html.replace('{{' + k + '}}', v);
+				});
+				
+				return html;
+			},
 
-			}
 
 		};
-
-
+		
 		app.init();
 
 		return app;
 	};
+
 
 	$('.js-field-auto-complete').each(function () {
 		var $this = $(this);
