@@ -20,9 +20,9 @@ class Grid
 
 	}
 
-	function head($attr = [])
+	function head($attr = [], $filter = true)
 	{
-		$out = '<tr>';
+		$out = '';
 
 		foreach ($this->structure as $i => $item) {
 			$class = 'head-col-' . $i;
@@ -36,7 +36,43 @@ class Grid
 			$out .= $th->render();
 		}
 
-		$out .= '</tr>';
+		$out = (new Field('tr', $attr, $out))->render();
+
+		if ($filter) {
+			$out .= $this->headFilters($attr);
+		}
+
+		return $out;
+	}
+
+	function headFilters($attr = [])
+	{
+		$out = '';
+
+		foreach ($this->structure as $i => $item) {
+			if (empty($item['filter'])) {
+			    continue;
+			}
+			
+			$class = 'head-filter-col-' . $i;
+			if (!empty($item['key']) && is_string($item['key'])) {
+				$class .= ' head-filter-col-key-' . ($item['key']);
+			} elseif (!empty($item['col']) && is_string($item['col'])) {
+				$class .= ' head-filter-col-name-' . ($item['col']);
+			}
+
+			$th = new Field('th', ['class' => $class], $item['title'] ?? '');
+			$out .= $th->render();
+		}
+		
+		if (!$out) {
+		    return '';
+		}
+
+		$attr['class'] = !empty($attr['class']) ? $attr['class'] : [];
+		$attr['class'][] = 'grid-head-filters';
+
+		$out = (new Field('tr', $attr, $out))->render();
 
 		return $out;
 	}
