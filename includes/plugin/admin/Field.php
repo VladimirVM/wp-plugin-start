@@ -462,7 +462,8 @@ class Field
 		if (!$section->name) {
 			register_setting($page_slug, $field['name'], $section->args);
 		}
-
+		
+		// @todo add addition script or css for field
 	}
 
 	static function wpOptionBuild($data)

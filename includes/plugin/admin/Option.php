@@ -83,7 +83,10 @@ class Option
 	
 	function render ()
 	{
-	    include Plugin::template('admin/option.php', false);
+	    $views = Plugin::component('block/option/' . $this->key . '/view', false);
+	    if ($views) {
+	    	include $views;
+	    }
 	}
 	
 	

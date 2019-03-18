@@ -130,43 +130,6 @@ class Construct
 		}
 	}
 
-	static function template($names, $find_in_theme = true)
-	{
-
-		$template = false;
-		if ($find_in_theme) {
-			$_names = [];
-			foreach ((array)$names as $name) {
-				$_names[] = static::$key . '/' . $name;
-			}
-			$template = locate_template($_names);
-		}
-
-		if (!$template) {
-			foreach ((array)$names as $name) {
-				$file = static::dir('template') . '/' . $name;
-
-				if (is_file($file)) {
-					$template = $file;
-					break;
-				}
-			}
-		}
-
-		if (!$template) {
-			foreach ((array)$names as $name) {
-				$file = WP_PLUGIN_START_DIR . '/templates/' . $name;
-
-				if (is_file($file)) {
-					$template = $file;
-					break;
-				}
-			}
-		}
-
-		return $template;
-	}
-
 	/**
 	 * page/admin/%name%/[controller|grid.view|form.view]
 	 *
@@ -198,7 +161,7 @@ class Construct
 		foreach ($components as $component) {
 			$components_plugin[] = static::dir('component') . '/' . $component . '.php';
 
-			if (static::class !== '\\WPPluginStart\\Plugin') {
+			if (static::class !== 'WPPluginStart\\Plugin') {
 				$components_plugin[] = Plugin::dir('component') . '/' . $component . '.php';
 			}
 			
@@ -211,7 +174,7 @@ class Construct
 			$component_default = implode('/', $component_default);
 
 			$components_defaults[] = static::dir('component') . '/' . $component_default . '.php';
-			if (static::class !== '\\WPPluginStart\\Plugin') {
+			if (static::class !== 'WPPluginStart\\Plugin') {
 				$components_defaults[] = Plugin::dir('component') . '/' . $component_default . '.php';
 			}
 		}

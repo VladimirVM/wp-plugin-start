@@ -63,7 +63,7 @@ class Page
 		$this->slug = $this->settings['slug'];
 
 		$this->views = [
-			'admin/page/' . $this->settings['slug'] . '/view',
+			'page/admin/' . $this->settings['slug'] . '/view',
 		];
 
 	}
@@ -125,7 +125,6 @@ class Page
 
 	function render()
 	{
-		
 		$views = $this->plugin::component($this->views, false);
 		
 		if ($views) {
