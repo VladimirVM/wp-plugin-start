@@ -117,7 +117,7 @@ class Page
 
 				$block['plugin_key'] = $this->plugin::$key;
 
-				$this->blocks[] = call_user_func($build, $name, $block, $this->slug, $args);
+				$this->blocks[] = call_user_func($build, $name, $block, $this, $args);
 
 			}
 		}
@@ -187,11 +187,11 @@ class Page
 			if ($controller) {
 			    include $controller;
 			}
-			
+
+			// add check for current page and save on option page
+			add_action('admin_init', [$this, 'build']);
 		}
 
-		// add check for current page and save on option page
-		add_action('admin_init', [$this, 'build']);
 	}
 
 	function isLoad()

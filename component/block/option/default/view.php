@@ -4,7 +4,7 @@
  */
 
 ?>
-<form action="options.php" method="post">
+<form action="options.php?wp-plugin-start[option-uid]=<?php echo $this->uid; ?>" method="post">
 	<?php
 	settings_fields($this->uid);
 	do_settings_sections($this->uid);

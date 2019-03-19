@@ -4,7 +4,6 @@ namespace WPPluginStart\Plugin\Admin;
 
 
 use WPPluginStart\Plugin;
-use WPPluginStart\Plugin\Settings;
 
 class Option
 {
@@ -12,7 +11,10 @@ class Option
 	static $page_slug;
 	static $page_blocks;
 
-	public $uid = null;
+	/**
+	 * @var Page 
+	 */
+	public $page = null;
 	public $key = '';
 	public $name = null;
 	public $title = '';
@@ -20,12 +22,13 @@ class Option
 	public $fields = [];
 	public $description = '';
 	public $plugin_key = '';
+	
+	public $uid = null;
 
-
-	function __construct($option_key, $settings = [], $uid = null)
+	function __construct($option_key, $settings = [], $page = null)
 	{
 		$this->key = $option_key;
-		$this->uid = $uid;
+		$this->page = $page;
 		
 		foreach ($settings as $key => $value) {
 			$this->{$key} = $value;
@@ -41,8 +44,10 @@ class Option
 			$this->name = $this->plugin_key . '_' . $this->key;
 		}
 		if ($this->uid === null) {
-			$this->uid = self::$page_slug;
+			$this->uid = $this->page->slug;
 		}
+
+		$this->uid = $this->name;
 		
 	}
 
@@ -90,33 +95,11 @@ class Option
 	}
 	
 	
-	static function build ($key, $settings, $uid, $args = [])
+	static function build ($key, $settings, $page, $args = [])
 	{
-		$self = new self($key, $settings, $uid);
+		$self = new self($key, $settings, $page);
 		
 		return [$self, 'render'];
 	}
-	
-
-//	static function init($slug = '', $blocks = [])
-//	{
-//		self::$page_slug = $slug;
-//		self::$page_blocks = array_combine($blocks, $blocks);
-//		add_action('admin_init', [__CLASS__, 'load']);
-//	}
-//
-//	static function load()
-//	{
-//		$blocks = Settings::get('blocks', []);
-//
-//		$blocks = array_filter($blocks, function ($value, $key) {
-//			return (isset($value['type']) && $value['type'] === 'option' && self::$page_blocks[$key]);
-//		}, ARRAY_FILTER_USE_BOTH);
-//
-//
-//		foreach ($blocks as $key => $block) {
-//			new self($key, $block);
-//		}
-//	}
 
 }

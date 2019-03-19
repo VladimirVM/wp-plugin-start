@@ -540,17 +540,9 @@ class Field
 			$attr['name'] = $name;
 		}
 
-
 		if (!empty($name) && !empty($value)) {
 			$data['value'] = self::value($name, $value);
 		}
-		
-//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
-//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($name, true), 3, 'UTF-8');
-//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($value, true), 3, 'UTF-8');
-//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($data, true), 3, 'UTF-8');
-//		echo '</pre>';
-		
 
 		$tag = new self($tag, $attr, $data);
 
