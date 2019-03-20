@@ -2,10 +2,6 @@
 
 namespace WPPluginStart\Plugin\Admin;
 
-
-use WPPluginStart\Plugin;
-use WPPluginStart\Plugin\Media;
-
 class Field
 {
 	static $without_close_tag = [
@@ -47,14 +43,9 @@ class Field
 		'textarea' => true,
 		'select' => true,
 	];
-	static $renders = [
-		'wp-media-image' => [__CLASS__, 'renderWPMediaImage'],
-		'wp-auto-complete' => [__CLASS__, 'renderWPAutoComplete'],
-//		'default' => [__CLASS__, 'renderFormTag'],
-//		'list' => [__CLASS__, 'renderListTags'],
-	];
-	static $prepare = [
+	static $custom_tags = [
 		'wp-media-image' => [
+			'render' => [__CLASS__, 'renderWPMediaImage'],
 			'css' => [
 				[
 					'key' => 'wp-plugin-start--field-media-button',
@@ -67,30 +58,26 @@ class Field
 					'file' => WP_PLUGIN_START_URL . '/media/js/field-media-button.js',
 				],
 			],
-			'hook' => [],
 		],
 		'wp-auto-complete' => [
-			'css' => [],
+			'render' => [__CLASS__, 'renderWPAutoComplete'],
 			'js' => [
 				[
 					'key' => 'wp-plugin-start--field-auto-complete',
 					'file' => WP_PLUGIN_START_URL . '/media/js/field-auto-complete.js',
 				],
 			],
-			'hook' => [],
 		],
 	];
 
 	private $tag = '';
 	private $attr = [];
 	private $data = [];
-	/**
-	 * @var Option
-	 */
-	private $section = null;
 
 	public function __construct($tag, $attr = [], $data = [])
 	{
+		self::hooks();
+
 		$this->tag = $tag;
 		$this->attr = $attr;
 
@@ -105,8 +92,8 @@ class Field
 
 	function prepare()
 	{
-		$css = self::$prepare[$this->tag]['css'] ?? null;
-		$js = self::$prepare[$this->tag]['js'] ?? null;
+		$css = self::$custom_tags[$this->tag]['css'] ?? null;
+		$js = self::$custom_tags[$this->tag]['js'] ?? null;
 
 		if ($css) {
 			foreach ($css as $args) {
@@ -122,27 +109,48 @@ class Field
 			}
 		}
 
+		do_action('wps-admin-field-prepare', $this);
 
 	}
-	
-	function view ()
+
+	function view()
 	{
-	    echo $this->render();
+		echo $this->render();
 	}
-	
+
 
 	function render()
 	{
-		if (!empty(static::$renders[$this->tag])) {
-			return call_user_func(static::$renders[$this->tag], $this);
+		if (!empty(static::$custom_tags[$this->tag]['render'])) {
+			return call_user_func(static::$custom_tags[$this->tag]['render'], $this);
 		}
 
 		if (isset($this->data['field']['items']) && $this->tag !== 'select') {
 			return static::renderListTags($this);
 		}
-		
+
 		return static::renderFormTag($this);
 	}
+
+	static function hooks()
+	{
+		static $run_once = false;
+		if ($run_once) {
+			return;
+		}
+		$run_once = true;
+
+		add_action('wps-admin-field-prepare', function ($self) {
+			static $add_wp_enqueue_media = true;
+			if ($self->tag === 'wp-media-image' && $add_wp_enqueue_media) {
+				wp_enqueue_media();
+				$add_wp_enqueue_media = false;
+			}
+
+		});
+
+	}
+
 
 	/**
 	 * @param Field $self
@@ -619,6 +627,72 @@ class Field
 		}
 
 		return $tag;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getTag(): string
+	{
+		return $this->tag;
+	}
+
+	/**
+	 * @param string $tag
+	 */
+	public function setTag(string $tag): void
+	{
+		$this->tag = $tag;
+	}
+
+	/**
+	 * @param string|null $name
+	 * @return array
+	 */
+	public function getAttr(string $name = null)
+	{
+		if ($name !== null) {
+			return $this->attr[$name] ?? null;
+		}
+		return $this->attr;
+	}
+
+	/**
+	 * @param $value
+	 * @param null|string $name
+	 */
+	public function setAttr($value, $name = null): void
+	{
+		if ($name !== null) {
+			$this->attr[$name] = $value;
+		} else {
+			$this->attr = $value;
+		}
+	}
+
+	/**
+	 * @param string|null $name
+	 * @return array
+	 */
+	public function getData(string $name = null)
+	{
+		if ($name !== null) {
+			return $this->data[$name] ?? null;
+		}
+		return $this->data;
+	}
+
+	/**
+	 * @param $value
+	 * @param null|string $name
+	 */
+	public function setData($value, $name = null): void
+	{
+		if ($name !== null) {
+			$this->data[$name] = $value;
+		} else {
+			$this->data = $value;
+		}
 	}
 
 

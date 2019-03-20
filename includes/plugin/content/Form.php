@@ -13,6 +13,7 @@ class Form
 {
 	private $method = 'post';
 	private $fields = [];
+	private $_fields = [];
 	private $values = [];
 	private $index = 0;
 	/**
@@ -53,6 +54,7 @@ class Form
 			}
 		}
 
+		$this->prepare();
 		$this->validateInit();
 	}
 
@@ -68,11 +70,11 @@ class Form
 				continue;
 			}
 			if (!empty($field['name'])) {
-			    $name = $field['name'];
-			} elseif(!empty($data['attr']['name'])) {
+				$name = $field['name'];
+			} elseif (!empty($data['attr']['name'])) {
 				$name = $data['attr']['name'];
 			}
-			
+
 			foreach ($field['validate'] as $rule => $args) {
 				$args = array_merge([
 					$rule,
@@ -82,11 +84,20 @@ class Form
 			}
 
 		}
-		
+
 		$this->validate = $v;
-		
-		$this->isValid();		
+
+		$this->isValid();
 	}
+
+	function prepare()
+	{
+		foreach ($this->fields as $name => $field) {
+			$field['name'] = $field['name'] ?? $name;
+			$this->_fields[$name] = Field::build($field, $this->values, [], false);
+		}
+	}
+
 
 	function start($attr = [])
 	{
@@ -105,54 +116,50 @@ class Form
 
 	function field($name, $template = null, $attr = [])
 	{
-		if (empty($this->fields[$name])) {
+		if (empty($this->_fields[$name])) {
 			return;
 		}
-		
+
 		$this->index++;
 
-		$data = $this->fields[$name];
-
-		$id = $data['attr']['id'] ?? 'form-field-id-' . $this->index;
-
-		if (empty($data['attr'])) {
-			$data['attr'] = [];
-		}
+		/**
+		 * @var Field $field
+		 */
+		$field = $this->_fields[$name];
 
 		if (!empty($attr)) {
-			$data['attr'] = array_merge($data['attr'], $attr);
+			$field->setAttr(array_merge($field->getAttr(), $attr));
 		}
 
-		if (empty($data['attr']['id'])) {
-			$data['attr']['id'] = $id;
-		}
-		
-		if (empty($data['name']) && empty($data['attr']['name'])) {
-			$data['name'] = $name;
-		}
-		
-		$field = Field::build($data, $this->values);
-		
-		if ((isset($data['type']) && $data['type'] === 'hidden') || (isset($data['attr']['type']) && $data['attr']['type'] === 'hidden')) {
-		    return $field;
+		if (null === ($id = $field->getAttr('id'))) {
+			$id = 'form-field-id-' . $this->index;
+			$field->setAttr($id, 'id');
 		}
 
+		$out = $field->render();
+
+		if ($field->getAttr('type') === 'hidden') {
+			return $out;
+		}
+
+		$label = $this->fields[$name]['label'] ?? '';
 
 		$class = implode(' ', [
-			$data['label'] ? '' : 'without-label',
+			$label ? '' : 'without-label',
 			'item-field-name-' . $name,
+			'item-field-tag-' . $field->getTag()
 		]);
 
 		$template = $this->template[$template] ?? $this->template['field'];
 
 		$message = '';
-		
+
 		if ($error = $this->error($name)) {
 			$message = '<div class="error-message"><div>' . implode('</div><div>', $error) . '</div></div>';
 		}
-		
 
-		$out = str_replace(
+
+		$_out = str_replace(
 			[
 				'{%field-class%}',
 				'{%label%}',
@@ -163,8 +170,8 @@ class Form
 			],
 			[
 				$class,
-				$data['label'] ?? '',
-				$field,
+				$label,
+				$out,
 				$message,
 				$id,
 				$this->index,
@@ -173,7 +180,7 @@ class Form
 		);
 
 
-		return $out;
+		return $_out;
 	}
 
 
@@ -193,11 +200,11 @@ class Form
 	function isValid()
 	{
 		static $is = null;
-		
+
 		if ($is === null) {
-		    $is = $this->validate->validate();
+			$is = $this->validate->validate();
 		}
-		
+
 		return $is;
 	}
 
