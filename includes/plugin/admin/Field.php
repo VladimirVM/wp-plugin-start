@@ -3,6 +3,9 @@
 namespace WPPluginStart\Plugin\Admin;
 
 
+use WPPluginStart\Plugin;
+use WPPluginStart\Plugin\Media;
+
 class Field
 {
 	static $without_close_tag = [
@@ -50,6 +53,33 @@ class Field
 //		'default' => [__CLASS__, 'renderFormTag'],
 //		'list' => [__CLASS__, 'renderListTags'],
 	];
+	static $prepare = [
+		'wp-media-image' => [
+			'css' => [
+				[
+					'key' => 'wp-plugin-start--field-media-button',
+					'file' => WP_PLUGIN_START_URL . '/media/css/field-media-button.css',
+				],
+			],
+			'js' => [
+				[
+					'key' => 'wp-plugin-start--field-media-button',
+					'file' => WP_PLUGIN_START_URL . '/media/js/field-media-button.js',
+				],
+			],
+			'hook' => [],
+		],
+		'wp-auto-complete' => [
+			'css' => [],
+			'js' => [
+				[
+					'key' => 'wp-plugin-start--field-auto-complete',
+					'file' => WP_PLUGIN_START_URL . '/media/js/field-auto-complete.js',
+				],
+			],
+			'hook' => [],
+		],
+	];
 
 	private $tag = '';
 	private $attr = [];
@@ -69,7 +99,37 @@ class Field
 		}
 
 		$this->data = (array)$data;
+
+		$this->prepare();
 	}
+
+	function prepare()
+	{
+		$css = self::$prepare[$this->tag]['css'] ?? null;
+		$js = self::$prepare[$this->tag]['js'] ?? null;
+
+		if ($css) {
+			foreach ($css as $args) {
+				$args = $args + ['deps' => [], 'ver' => null, 'media' => null];
+				wp_enqueue_style($args['key'], $args['file'], $args['deps'], $args['ver'], $args['media']);
+			}
+		}
+
+		if ($js) {
+			foreach ($js as $args) {
+				$args = $args + ['deps' => [], 'ver' => null, 'in_footer' => true];
+				wp_enqueue_script($args['key'], $args['file'], $args['deps'], $args['ver'], $args['in_footer']);
+			}
+		}
+
+
+	}
+	
+	function view ()
+	{
+	    echo $this->render();
+	}
+	
 
 	function render()
 	{
@@ -80,6 +140,7 @@ class Field
 		if (isset($this->data['field']['items']) && $this->tag !== 'select') {
 			return static::renderListTags($this);
 		}
+		
 		return static::renderFormTag($this);
 	}
 
@@ -184,7 +245,7 @@ class Field
 		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
 		$node['attr']['class'][] = 'media-button-field-container';
 		$node['attr']['class'][] = 'js-field-media-button';
-		
+
 		unset($node['attr']['name']);
 		$attr = self::attr($node['attr']);
 
@@ -442,13 +503,20 @@ class Field
 
 	static function init($page_slug, $key, $data = [])
 	{
-		$section = $data['section'];
+		$section = $data['section'] ?? null;
 		$field = $data['field'];
+
+		$self = Field::wpOptionBuild([
+			'label_for' => $data['id'],
+			'field' => $field,
+			'key' => $key,
+			'section' => $section,
+		]);
 
 		add_settings_field(
 			$data['id'],
 			$field['label'],
-			[self::class, 'wpOptionBuild'],
+			[$self, 'view'],
 			$page_slug,
 			$key,
 			[
@@ -459,10 +527,10 @@ class Field
 			]
 		);
 
-		if (!$section->name) {
+		if (empty($section) || empty($section->name)) {
 			register_setting($page_slug, $field['name'], $section->args);
 		}
-		
+
 		// @todo add addition script or css for field
 	}
 
@@ -494,11 +562,11 @@ class Field
 			$values[$option_name] = get_option($option_name);
 		}
 
-		echo self::build($field, $values, $data);
+		return self::build($field, $values, $data, false);
 	}
 
 
-	static function build($field, $value = [], $data = [])
+	static function build($field, $value = [], $data = [], $render = true)
 	{
 		$tag = '';
 //		$data = [];
@@ -546,7 +614,11 @@ class Field
 
 		$tag = new self($tag, $attr, $data);
 
-		return $tag->render();
+		if ($render) {
+			return $tag->render();
+		}
+
+		return $tag;
 	}
 
 

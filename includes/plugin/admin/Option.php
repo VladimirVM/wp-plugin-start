@@ -12,7 +12,7 @@ class Option
 	static $page_blocks;
 
 	/**
-	 * @var Page 
+	 * @var Page
 	 */
 	public $page = null;
 	public $key = '';
@@ -22,14 +22,14 @@ class Option
 	public $fields = [];
 	public $description = '';
 	public $plugin_key = '';
-	
+
 	public $uid = null;
 
 	function __construct($option_key, $settings = [], $page = null)
 	{
 		$this->key = $option_key;
 		$this->page = $page;
-		
+
 		foreach ($settings as $key => $value) {
 			$this->{$key} = $value;
 		}
@@ -44,11 +44,9 @@ class Option
 			$this->name = $this->plugin_key . '_' . $this->key;
 		}
 		if ($this->uid === null) {
-			$this->uid = $this->page->slug;
+			$this->uid = $this->plugin_key . '/' . $this->page->slug . '/' . $this->key;
 		}
 
-		$this->uid = $this->name;
-		
 	}
 
 	function register()
@@ -85,20 +83,20 @@ class Option
 	{
 		echo $this->description;
 	}
-	
-	function render ()
+
+	function render()
 	{
-	    $views = Plugin::component('block/option/' . $this->key . '/view', false);
-	    if ($views) {
-	    	include $views;
-	    }
+		$views = Plugin::component('block/option/' . $this->key . '/view', false);
+		if ($views) {
+			include $views;
+		}
 	}
-	
-	
-	static function build ($key, $settings, $page, $args = [])
+
+
+	static function build($key, $settings, $page, $args = [])
 	{
 		$self = new self($key, $settings, $page);
-		
+
 		return [$self, 'render'];
 	}
 

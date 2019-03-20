@@ -26,7 +26,7 @@ class Page
 	];
 	public $blocks = [];
 	public $slug = '';
-	
+
 	public $data = [];
 
 	/**
@@ -71,8 +71,8 @@ class Page
 	function media()
 	{
 		$media = [
-			'css' => $this->settings['css']??[],
-			'js' => $this->settings['js']??[],
+			'css' => $this->settings['css'] ?? [],
+			'js' => $this->settings['js'] ?? [],
 		];
 
 		Plugin\Media::add($this->plugin, $media, 'admin');
@@ -126,20 +126,10 @@ class Page
 	function render()
 	{
 		$views = $this->plugin::component($this->views, false);
-		
+
 		if ($views) {
-		    include $views;
+			include $views;
 		}
-		
-//		$templates = [];
-//		if (!empty($this->settings['template'])) {
-//		    $templates = (array)$this->settings['template'];
-//		}
-//		$templates[] = 'admin/page.php';
-//		
-//		$template = $this->plugin::template($templates, false);
-//		
-//		include $template;
 	}
 
 
@@ -178,20 +168,20 @@ class Page
 		}
 
 		static::$hooks[$this->settings['slug']] = $hook;
-		
+
 		if ($this->isLoad()) {
 			$this->media();
-			
+
 			$controller = $this->plugin::component('admin/page/' . $this->settings['slug'] . '/controller');
-			
+
 			if ($controller) {
-			    include $controller;
+				include $controller;
 			}
 
-			// add check for current page and save on option page
-			add_action('admin_init', [$this, 'build']);
 		}
 
+		// add check for current page and save on option page
+		add_action('admin_init', [$this, 'build']);
 	}
 
 	function isLoad()
@@ -216,18 +206,6 @@ class Page
 
 
 	}
-
-//	static function addAll()
-//	{
-//		$pages = $this->plugin::settings('pages', []);
-//
-//		if (empty($pages)) {
-//			return;
-//		}
-//		foreach ($pages as $page) {
-//			new self($page);
-//		}
-//	}
 
 	static function generateItem($key, $parent = false, $add_plugin_key = '')
 	{
@@ -261,7 +239,7 @@ class Page
 		if (empty($args['page'])) {
 			$args['page'] = $args['menu'];
 		}
-		
+
 		if (isset($args['template'])) {
 			$args['template'] = (array)$args['template'];
 		}
@@ -269,7 +247,7 @@ class Page
 		if (empty($args['template'])) {
 			$args['template'][] = 'admin/page/' . $slug . '.php';
 		}
-		
+
 		$args['slug'] = $slug_and_key;
 
 		return $args;
@@ -295,12 +273,12 @@ class Page
 
 		return static::pageSlug($slug, $add_plugin_key);
 	}
-	
-	static function currentKey ()
+
+	static function currentKey()
 	{
 		return filter_input(INPUT_GET, 'page');
 	}
-	
+
 
 	static function isPluginPage()
 	{
