@@ -5,6 +5,7 @@
 
 namespace WPPluginStart\Plugin\Content;
 
+use WPPluginStart\Helper;
 use \WPPluginStart\Plugin\Admin\Field;
 
 class Grid
@@ -18,13 +19,20 @@ class Grid
 		$this->structure = $structure;
 		$this->data = $data;
 
+		if (empty($this->structure['cols'])) {
+			$this->structure['cols'] = [];
+		}
+		if (empty($this->structure['filters'])) {
+			$this->structure['filters'] = [];
+		}
+
 	}
 
 	function head($attr = [], $filter = true)
 	{
 		$out = '';
 
-		foreach ($this->structure as $i => $item) {
+		foreach ($this->structure['cols'] as $i => $item) {
 			$class = 'head-col-' . $i;
 			if (!empty($item['key']) && is_string($item['key'])) {
 				$class .= ' head-col-key-' . ($item['key']);
@@ -38,41 +46,51 @@ class Grid
 
 		$out = (new Field('tr', $attr, $out))->render();
 
-		if ($filter) {
-			$out .= $this->headFilters($attr);
-		}
-
 		return $out;
 	}
 
-	function headFilters($attr = [])
+	function filters($attr = [])
 	{
-		$out = '';
-
-		foreach ($this->structure as $i => $item) {
-			if (empty($item['filter'])) {
-			    continue;
+		$out = '<form method="get">';
+		
+		if (!empty($_GET)) {
+			$data = $_GET;
+			unset($data['filter']);
+			foreach ($data as $name => $value) {
+				$out .= (new Field('input', ['type' => 'hidden', 'name' => $name, 'value' => $value]))->render();
 			}
-			
-			$class = 'head-filter-col-' . $i;
-			if (!empty($item['key']) && is_string($item['key'])) {
-				$class .= ' head-filter-col-key-' . ($item['key']);
-			} elseif (!empty($item['col']) && is_string($item['col'])) {
-				$class .= ' head-filter-col-name-' . ($item['col']);
-			}
-
-			$th = new Field('th', ['class' => $class], $item['title'] ?? '');
-			$out .= $th->render();
 		}
 		
-		if (!$out) {
-		    return '';
+		$out .= '<div style="clear: both">';
+
+		foreach ($this->structure['filters'] as $item) {
+
+			$col = '<label class="grid-filter alignleft">';
+
+			if (!empty($item['label'])) {
+				$col .= '<div class="label">' . $item['label'] . '</div>';
+			}
+
+			if (!empty($item['name'])) {
+				$item['name'] = (array)$item['name'];
+				array_unshift($item['name'], 'filter');
+			}
+
+			$col .= '<div class="grid-filter-item">' . Field::build($item, $_GET ?? [], []) . '</div>';
+
+			$col .= '</label>';
+
+
+			$out .= $col;
+
 		}
+		$out .= '</div>';
 
-		$attr['class'] = !empty($attr['class']) ? $attr['class'] : [];
-		$attr['class'][] = 'grid-head-filters';
+		$out .= '<p class="grid-filter-action" style="clear: both; text-align: right">';
+		$out .= (new Field('button', ['type' => 'submit'], 'Filtered'))->render();
+		$out .= '</p>';
 
-		$out = (new Field('tr', $attr, $out))->render();
+		$out .= '</form>';
 
 		return $out;
 	}
@@ -82,9 +100,8 @@ class Grid
 	{
 		$out = '';
 		foreach ($this->data->toArray()['data'] as $row_i => $data) {
-//			$out = '<tr>';
 			$row = '';
-			foreach ($this->structure as $col_i => $item) {
+			foreach ($this->structure['cols'] as $col_i => $item) {
 				if (empty($item['col'])) {
 					continue;
 				}
