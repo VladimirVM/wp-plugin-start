@@ -1,6 +1,9 @@
 <?php
 
-namespace WPPluginStart\Plugin\Admin;
+namespace WPPluginStart\Plugin\Content;
+
+use WPPluginStart\plugin\content\field\WPAutoComplete;
+use WPPluginStart\plugin\content\field\WPMediaImage;
 
 class Field
 {
@@ -44,40 +47,17 @@ class Field
 		'select' => true,
 	];
 	static $custom_tags = [
-		'wp-media-image' => [
-			'render' => [__CLASS__, 'renderWPMediaImage'],
-			'css' => [
-				[
-					'key' => 'wp-plugin-start--field-media-button',
-					'file' => WP_PLUGIN_START_URL . '/media/css/field-media-button.css',
-				],
-			],
-			'js' => [
-				[
-					'key' => 'wp-plugin-start--field-media-button',
-					'file' => WP_PLUGIN_START_URL . '/media/js/field-media-button.js',
-				],
-			],
-		],
-		'wp-auto-complete' => [
-			'render' => [__CLASS__, 'renderWPAutoComplete'],
-			'js' => [
-				[
-					'key' => 'wp-plugin-start--field-auto-complete',
-					'file' => WP_PLUGIN_START_URL . '/media/js/field-auto-complete.js',
-				],
-			],
-		],
+		'wp-media-image' => WPMediaImage::class,
+		'wp-auto-complete' => WPAutoComplete::class,
 	];
 
 	private $tag = '';
 	private $attr = [];
 	private $data = [];
+	private $render = null;
 
 	public function __construct($tag, $attr = [], $data = [])
 	{
-		self::hooks();
-
 		$this->tag = $tag;
 		$this->attr = $attr;
 
@@ -92,21 +72,8 @@ class Field
 
 	function prepare()
 	{
-		$css = self::$custom_tags[$this->tag]['css'] ?? null;
-		$js = self::$custom_tags[$this->tag]['js'] ?? null;
-
-		if ($css) {
-			foreach ($css as $args) {
-				$args = $args + ['deps' => [], 'ver' => null, 'media' => null];
-				wp_enqueue_style($args['key'], $args['file'], $args['deps'], $args['ver'], $args['media']);
-			}
-		}
-
-		if ($js) {
-			foreach ($js as $args) {
-				$args = $args + ['deps' => [], 'ver' => null, 'in_footer' => true];
-				wp_enqueue_script($args['key'], $args['file'], $args['deps'], $args['ver'], $args['in_footer']);
-			}
+		if (!empty(static::$custom_tags[$this->tag]) && is_callable(self::$custom_tags[$this->tag], true)) {
+			$this->render = new static::$custom_tags[$this->tag]($this);
 		}
 
 		do_action('wps-admin-field-prepare', $this);
@@ -121,8 +88,8 @@ class Field
 
 	function render()
 	{
-		if (!empty(static::$custom_tags[$this->tag]['render'])) {
-			return call_user_func(static::$custom_tags[$this->tag]['render'], $this);
+		if ($this->render) {
+			return call_user_func([$this->render, 'render']);
 		}
 
 		if (isset($this->data['field']['items']) && $this->tag !== 'select') {
@@ -131,26 +98,6 @@ class Field
 
 		return static::renderFormTag($this);
 	}
-
-	static function hooks()
-	{
-		static $run_once = false;
-		if ($run_once) {
-			return;
-		}
-		$run_once = true;
-
-		add_action('wps-admin-field-prepare', function ($self) {
-			static $add_wp_enqueue_media = true;
-			if ($self->tag === 'wp-media-image' && $add_wp_enqueue_media) {
-				wp_enqueue_media();
-				$add_wp_enqueue_media = false;
-			}
-
-		});
-
-	}
-
 
 	/**
 	 * @param Field $self
@@ -203,141 +150,6 @@ class Field
 
 		return $out;
 	}
-
-	/**
-	 * @param Field $self
-	 *
-	 * @return string
-	 */
-	static function renderWPMediaImage($self)
-	{
-		$node = [
-			'tag' => 'div',
-//			'name' => [],
-			'value' => null,
-			'content' => '',
-			'attr' => $self->attr,
-		];
-
-		$template = '<%1$s %2$s>%3$s</%1$s>';
-
-
-		if (!empty($node['attr']['value'])) {
-			$node['value'] = $node['attr']['value'];
-		}
-
-		$image_src = $self->data['field']['src'] ?? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D';
-		$image_id = $self->data['field']['value'] ?? null;
-		$image_width = (int)($self->data['field']['width'] ?? 50);
-		$image_height = (int)($self->data['field']['height'] ?? 50);
-		$image_data = wp_get_attachment_image_src($image_id, array($image_width, $image_height));
-
-
-		if (!empty($image_data[0])) {
-			$image_src = $image_data[0];
-		} else {
-			$image_id = null;
-		}
-
-		$content = '<input type="hidden" name="%2$s" value="%3$s" class="js-media-button-id">
-		<span class="wrap" style="display: inline-block">
-		<span class="image" style="display: inline-block; height: %4$s; width: %5$s;"><img src="%1$s" class="js-media-button-image"></span>
-		<span class="acton" style="display: inline-block">
-		<button type="button" class="button button-with-icon js-media-button-change-image"><div class="dashicons-before dashicons-plus"></div></button>
-		<button type="button" class="button button-with-icon js-media-button-remove-image"><div class="dashicons-before dashicons-no"></div></button>
-		</span>
-		</span>';
-
-		$node['content'] = sprintf($content, $image_src, $self->data['field']['name'] ?? null, $image_id, $image_height . 'px', $image_width . 'px');
-
-		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
-		$node['attr']['class'][] = 'media-button-field-container';
-		$node['attr']['class'][] = 'js-field-media-button';
-
-		unset($node['attr']['name']);
-		$attr = self::attr($node['attr']);
-
-		$out = sprintf($template, $node['tag'], $attr, $node['content']);
-
-		if (isset($self->data['field']['description'])) {
-			$out .= '<p class="description">' . $self->data['field']['description'] . '</p>';
-		}
-
-		return $out;
-	}
-
-	/**
-	 * @param Field $self
-	 *
-	 *
-	 *
-	 * @return string
-	 */
-	static function renderWPAutoComplete($self)
-	{
-		$node = [
-			'tag' => 'div',
-//			'name' => [],
-			'value' => null,
-			'content' => '',
-			'attr' => $self->attr,
-		];
-
-		$template = '<%1$s %2$s>%3$s</%1$s>';
-
-
-		if (!empty($self->data['value'])) {
-			$node['value'] = $self->data['value'];
-		}
-
-		$content = '
-<div>
-<div class="field-wrap"><input type="text" class="js-auto-complete-field-text"/></div>
-<ul class="js-list-items">%1$s</ul>
-</div>
-';
-
-		$list_item_template = $self->data['template-list-item'] ?? '<li class="js-list-item">
-<span class="js-list-remove-item"><span class="dashicons-before dashicons-no"></span></span>
-<input type="hidden" name="{{name}}[]" value="{{value}}"/> {{title}}
-</li>';
-		$list_item_template = str_replace('{{name}}', esc_attr($self->data['field']['name']), $list_item_template);
-		$list_items = '';
-
-		if ($node['value']) {
-			foreach ($node['value'] as $list_id => $list_item) {
-				$list_items .= str_replace(
-					['{{value}}', '{{title}}'],
-					[$list_id, $list_item],
-					$list_item_template
-				);
-			}
-		}
-
-		$node['content'] = sprintf($content, $list_items);
-
-		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
-		$node['attr']['class'][] = 'media-button-field-container';
-		$node['attr']['class'][] = 'js-field-auto-complete';
-		if (empty($node['attr']['data-settings'])) {
-			$node['attr']['data-settings'] = [];
-		}
-		if (empty($node['attr']['data-template'])) {
-			$node['attr']['data-template'] = $list_item_template;
-		}
-
-		unset($node['attr']['name']);
-		$attr = self::attr($node['attr']);
-
-		$out = sprintf($template, $node['tag'], $attr, $node['content']);
-
-		if (isset($self->data['field']['description'])) {
-			$out .= '<p class="description">' . $self->data['field']['description'] . '</p>';
-		}
-
-		return $out;
-	}
-
 
 	static function renderListTags($self)
 	{
@@ -538,8 +350,6 @@ class Field
 		if (empty($section) || empty($section->name)) {
 			register_setting($page_slug, $field['name'], $section->args);
 		}
-
-		// @todo add addition script or css for field
 	}
 
 	static function wpOptionBuild($data)
@@ -647,12 +457,13 @@ class Field
 
 	/**
 	 * @param string|null $name
+	 * @param null $default
 	 * @return array
 	 */
-	public function getAttr(string $name = null)
+	public function getAttr(string $name = null, $default = null)
 	{
 		if ($name !== null) {
-			return $this->attr[$name] ?? null;
+			return $this->attr[$name] ?? $default;
 		}
 		return $this->attr;
 	}
@@ -672,12 +483,13 @@ class Field
 
 	/**
 	 * @param string|null $name
+	 * @param null $default
 	 * @return array
 	 */
-	public function getData(string $name = null)
+	public function getData(string $name = null, $default = null)
 	{
 		if ($name !== null) {
-			return $this->data[$name] ?? null;
+			return $this->data[$name] ?? $default;
 		}
 		return $this->data;
 	}
@@ -693,6 +505,22 @@ class Field
 		} else {
 			$this->data = $value;
 		}
+	}
+
+	/**
+	 * @return object|null
+	 */
+	public function getRender()
+	{
+		return $this->render;
+	}
+
+	/**
+	 * @param object|null $render
+	 */
+	public function setRender($render)
+	{
+		$this->render = $render;
 	}
 
 

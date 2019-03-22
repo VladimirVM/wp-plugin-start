@@ -2,7 +2,6 @@
 
 namespace WPPluginStart\Plugin\Admin;
 
-
 use WPPluginStart\Plugin;
 
 class Page
@@ -116,7 +115,7 @@ class Page
 				}
 
 				$block['plugin_key'] = $this->plugin::$key;
-
+				
 				$this->blocks[] = call_user_func($build, $name, $block, $this, $args);
 
 			}

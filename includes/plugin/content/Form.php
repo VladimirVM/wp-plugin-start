@@ -7,7 +7,7 @@ namespace WPPluginStart\plugin\content;
 
 
 use Valitron\Validator;
-use WPPluginStart\Plugin\Admin\Field;
+use WPPluginStart\Plugin\Content\Field;
 
 class Form
 {

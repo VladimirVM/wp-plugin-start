@@ -6,7 +6,7 @@
 namespace WPPluginStart\Plugin\Content;
 
 use WPPluginStart\Helper;
-use \WPPluginStart\Plugin\Admin\Field;
+use \WPPluginStart\Plugin\Content\Field;
 
 class Grid
 {

@@ -69,7 +69,7 @@ class Option
 
 				$id = $this->plugin_key . '_' . $field['name'];
 
-				Field::init($this->uid, $section_key, [
+				Plugin\Content\Field::init($this->uid, $section_key, [
 					'section' => $this,
 					'field' => $field,
 					'id' => $id,
