@@ -257,6 +257,9 @@ class Field
 		if (empty($name)) {
 			return null;
 		}
+		if (is_scalar($name)) {
+			return $name;
+		}
 		$name = (array)$name;
 		$out = array_shift($name);
 		if (!empty($name)) {
@@ -474,7 +477,7 @@ class Field
 	/**
 	 * @param $value
 	 * @param null|string $name
- 	 * @return Field
+	 * @return Field
 	 */
 	public function setAttr($value, $name = null): Field
 	{
@@ -512,7 +515,7 @@ class Field
 		} else {
 			$this->data = $value;
 		}
-		
+
 		return $this;
 	}
 

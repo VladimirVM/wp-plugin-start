@@ -29,32 +29,12 @@ class Media
 	 */
 	static $admin_pages = [];
 
-//	/**
-//	 * @var Plugin $plugin
-//	 */
-//	private $plugin = null;
-//
-//	function __construct($plugin/*, $media, $type*/)
-//	{
-//		$this->plugin = $plugin;
-////	    $this->type = $type;
-//
-//	}
-
-
 	static function init()
 	{
 		$action = 'wp_enqueue_scripts';
 		if (is_admin()) {
 			$action = 'admin_enqueue_scripts';
 		}
-
-//		$call = null;
-//		if (is_callable($media)) {
-//			$call = $media;
-//		} else {
-//			$call = $this->loadOnPluginPage($media);
-//		}
 
 		add_action($action, [__CLASS__, 'load']);
 	}
@@ -88,83 +68,19 @@ class Media
 
 	}
 
-//
-//	function register($items, $type = 'admin')
-//	{
-//		if (!empty($items['css'])) {
-//			self::$css[$type] = array_merge(self::$css[$type], (array)$items['css']);
-//		}
-//		if (!empty($items['js'])) {
-//			self::$js[$type] = array_merge(self::$js[$type], (array)$items['js']);
-//		}
-//		$this->init([$this, '_register_all'], $type);
-//
-//	}
-//
-//	function _register_all()
-//	{
-//		if (!empty($items['css'])) {
-//			foreach ($items['css'] as $key => $css) {
-//				$args = $this->prepare($css, $key, 'css');
-//				if ($args) {
-//					wp_register_style($args['key'], $args['file'], $args['deps'], $args['ver'], $args['media']);
-//				}
-//			}
-//		}
-//
-//		if (!empty($items['js'])) {
-//			foreach ($items['js'] as $key => $js) {
-//				$args = $this->prepare($js, $key, 'js');
-//				if ($args) {
-//					wp_register_script($args['key'], $args['file'], $args['deps'], $args['ver'], $args['in_footer']);
-//				}
-//			}
-//		}
-//	}
-
-
 	static function key($file)
 	{
 		return sanitize_key(str_replace('/', '--', $file));
 
 	}
 
-//	function prepare($args, $key, $type)
-//	{
-//		/**
-//		 * @var Plugin $plugin
-//		 */
-//		$plugin = $this->plugin;
-//		if ($type === 'css') {
-//			$default = self::$css['default'];
-//			$folder = '/' . self::$css['folder'] . '/';
-//		} else {
-//			$default = self::$js['default'];
-//			$folder = '/' . self::$js['folder'] . '/';
-//		}
-//		if (is_string($args)) {
-//			$args = ['file' => $args];
-//		}
-//
-//		$args += $default;
-//		if (empty($args['file'])) {
-//			return false;
-//		}
-//		if ($args['ver'] === null) {
-//			$args['ver'] = $plugin::$version;
-//		}
-//
-//		if (empty($args['key'])) {
-//			$args['key'] = self::key($plugin::$key . '--' . !is_numeric($key) ? $key : $args['file']);
-//		}
-//
-//		if (is_file($plugin::$media_dir . $folder . $args['file'])) {
-//			$args['file'] = $plugin::$media_url . $folder . $args['file'];
-//		}
-//
-//		return $args;
-//	}
-
+	/**
+	 * @param array $args
+	 * @param string $key
+	 * @param string $media_type css|js
+	 * @param Plugin $plugin
+	 * @return array|bool|mixed|string
+	 */
 	static function prepare_item($args, $key, $media_type, $plugin)
 	{
 		/**
@@ -191,19 +107,27 @@ class Media
 		}
 
 		if (empty($args['key'])) {
-			$args['key'] = self::key($plugin::$key . '--'  . (!is_numeric($key) ? $key : $args['file']));
-		}
-		
-		if (strpos($args['file'], '.') === false) {
-		    $args['key'] = $args['file'];
-		    $args['file'] = '';
-		    $args['deps'] = [];
-		    $args['ver'] = false;
-		    $args['in_footer'] = false;
+			$args['key'] = self::key($plugin::$key . '--' . (!is_numeric($key) ? $key : $args['file']));
 		}
 
-		if ($args['file'] && is_file($plugin::dir('media') . $folder . $args['file'])) {
-			$args['file'] = $plugin::url('media') . $folder . $args['file'];
+		if (strpos($args['file'], '.') === false) {
+			$args['key'] = $args['file'];
+			$args['file'] = '';
+			$args['deps'] = [];
+			$args['ver'] = false;
+			$args['in_footer'] = false;
+		}
+
+		if ($args['file']) {
+			$dir_key = 'media';
+			if ($args['file']{1} === '/') {
+				$folder = '';
+				$dir_key = '';
+			}
+
+			if (is_file($plugin::dir($dir_key) . $folder . $args['file'])) {
+				$args['file'] = $plugin::url($dir_key) . $folder . $args['file'];
+			}
 		}
 
 		return $args;
@@ -218,7 +142,7 @@ class Media
 		if (!empty(self::$css[$key])) {
 			foreach (self::$css[$key] as $args) {
 				if (empty($args)) {
-				    continue;
+					continue;
 				}
 				wp_enqueue_style($args['key'], $args['file'], $args['deps'], $args['ver'], $args['media']);
 			}
@@ -257,24 +181,5 @@ class Media
 		}
 
 	}
-
-//	static function loadOnPluginPage($items)
-//	{
-//		return function () use ($items) {
-//			if (!Admin\Page::isPluginPage()) {
-//				return;
-//			}
-//
-//			self::load($items);
-//		};
-//	}
-//
-//	static function loadOnAllPage($items)
-//	{
-//		return function () use ($items) {
-//			self::load($items);
-//		};
-//	}
-
 
 }

@@ -21,6 +21,7 @@ class WPAutoComplete
 		],
 	];
 	private static $once = false;
+	private static $template_list_item = false;
 
 	/**
 	 * WPMediaImage constructor.
@@ -36,53 +37,38 @@ class WPAutoComplete
 	{
 		if (!self::$once) {
 			self::$once = true;
-		    $this->doOnce();
+			$this->doOnce();
 		}
-		
+
 	}
 
-	function doOnce ()
+	function doOnce()
 	{
 		Media::add(Plugin::class, $this->media, 'admin');
+
+		$view = Plugin::component('content/field/WPAutoComplete/list-item.view', false);
+
+		if ($view) {
+			self::$template_list_item = file_get_contents($view);
+		}
+
 	}
-	
+
 
 	public function render()
 	{
 		$field = $this->field;
-		
-		$node = [
-			'tag' => 'div',
-//			'name' => [],
-			'value' => null,
-			'content' => '',
-			'attr' => $field->getAttr(),
-		];
+		$attr = $field->getAttr();
 
-		$template = '<%1$s %2$s>%3$s</%1$s>';
+		$values = $field->getData('value');
+		$name = Field::name($attr['name'] ?? '');
 
-		$data = $field->getData();
-//
-		if (!empty($data['value'])) {
-			$node['value'] = $data['value'];
-		}
-
-		$content = '
-<div>
-<div class="field-wrap"><input type="text" class="js-auto-complete-field-text"/></div>
-<ul class="js-list-items">%1$s</ul>
-</div>
-';
-
-		$list_item_template = $data['template-list-item'] ?? '<li class="js-list-item">
-<span class="js-list-remove-item"><span class="dashicons-before dashicons-no"></span></span>
-<input type="hidden" name="{{name}}[]" value="{{value}}"/> {{title}}
-</li>';
-		$list_item_template = str_replace('{{name}}', esc_attr($data['field']['name']), $list_item_template);
+		$list_item_template = $field->getData('template-list-item', self::$template_list_item);
+		$list_item_template = str_replace('{{name}}', esc_attr($name), $list_item_template);
 		$list_items = '';
 
-		if ($node['value']) {
-			foreach ($node['value'] as $list_id => $list_item) {
+		if ($values) {
+			foreach ($values as $list_id => $list_item) {
 				$list_items .= str_replace(
 					['{{value}}', '{{title}}'],
 					[$list_id, $list_item],
@@ -91,26 +77,25 @@ class WPAutoComplete
 			}
 		}
 
-		$node['content'] = sprintf($content, $list_items);
-
-		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
-		$node['attr']['class'][] = 'media-button-field-container';
-		$node['attr']['class'][] = 'js-field-auto-complete';
-		if (empty($node['attr']['data-settings'])) {
-			$node['attr']['data-settings'] = [];
+		$attr['class'] = (array)($attr['class'] ?? []);
+		$attr['class'][] = 'media-button-field-container';
+		$attr['class'][] = 'js-field-auto-complete';
+		if (empty($attr['data-settings'])) {
+			$attr['data-settings'] = [];
 		}
-		if (empty($node['attr']['data-template'])) {
-			$node['attr']['data-template'] = $list_item_template;
+		if (empty($attr['data-template'])) {
+			$attr['data-template'] = $list_item_template;
 		}
 
-		unset($node['attr']['name']);
-		$attr = Field::attr($node['attr']);
+		unset($attr['name']);
 
-		$out = sprintf($template, $node['tag'], $attr, $node['content']);
+		$view = Plugin::component('content/field/WPAutoComplete/view', false);
 
-		if (isset($data['field']['description'])) {
-			$out .= '<p class="description">' . $data['field']['description'] . '</p>';
-		}
+		ob_start();
+
+		include $view;
+
+		$out = ob_get_clean();
 
 		return $out;
 	}

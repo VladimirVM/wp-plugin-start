@@ -32,7 +32,7 @@ class ComponentController
 	public function annaliseRequest()
 	{
 		if (!empty($_GET['crud-action'])) {
-			$this->action = basename($_GET['crud-action'], '.php');
+			$this->action = preg_replace('/[^0-9a-z\-_\.]/i', '', basename($_GET['crud-action'], '.php'));
 		}
 
 	}
