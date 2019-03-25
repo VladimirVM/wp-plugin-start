@@ -11,13 +11,40 @@ use \WPPluginStart\Plugin\Content\Field;
 class Grid
 {
 
-	private $data = [];
+	private $data = null;
+	private $query = [];
 	private $structure = [];
+	private $page_name_key = 'paged';
+	private $items_per_page = 10;
+	private $page_id = 1;
 
-	function __construct($structure, $data = [])
+	function __construct($structure, $query, $items_per_page = null, $page_name_key = null, $page_id = null)
 	{
 		$this->structure = $structure;
-		$this->data = $data;
+
+		if ($page_name_key !== null) {
+			$this->page_name_key = $page_name_key;
+		}
+		if ($items_per_page !== null) {
+			$this->items_per_page = $items_per_page;
+		}
+		if ($page_id !== null) {
+			$this->page_id = $page_id;
+		}
+
+		if (!empty($structure['filters'])) {
+			foreach ($structure['filters'] as $filter) {
+				if (isset($filter['filtered']) && $filter['filtered']) {
+					$filter['filtered']($query, $_GET ?? []);
+				}
+			}
+		}
+
+		$this->query = $query;
+
+		$this->page_id = filter_input(INPUT_GET, $this->page_name_key, FILTER_SANITIZE_NUMBER_INT) ?? 1;
+
+//		$this->data = $data->paginate(10, ['*'], $this->page_name_key, $page_id);
 
 		if (empty($this->structure['cols'])) {
 			$this->structure['cols'] = [];
@@ -27,6 +54,18 @@ class Grid
 		}
 
 	}
+
+	function getData()
+	{
+		if ($this->data) {
+			return $this->data;
+		}
+
+		$this->data = $this->query->paginate($this->items_per_page, ['*'], $this->page_name_key, $this->page_id);
+
+		return $this->data;
+	}
+
 
 	function head($attr = [], $filter = true)
 	{
@@ -52,7 +91,7 @@ class Grid
 	function filters($attr = [])
 	{
 		$out = '<form method="get">';
-		
+
 		if (!empty($_GET)) {
 			$data = $_GET;
 			unset($data['filter']);
@@ -60,15 +99,19 @@ class Grid
 				$out .= (new Field('input', ['type' => 'hidden', 'name' => $name, 'value' => $value]))->render();
 			}
 		}
-		
-		$out .= '<div style="clear: both">';
+
+		$out .= '<div class="tablenav">';
+		$out .= '<div class="alignleft actions">';
 
 		foreach ($this->structure['filters'] as $item) {
 
-			$col = '<label class="grid-filter alignleft">';
+			$item['attr'] = $item['attr'] ?? [];
+			$col = '<label class="grid-filter">';
 
 			if (!empty($item['label'])) {
-				$col .= '<div class="label">' . $item['label'] . '</div>';
+				if (!isset($item['attr']['placeholder'])) {
+					$item['attr']['placeholder'] = $item['label'];
+				}
 			}
 
 			if (!empty($item['name'])) {
@@ -76,7 +119,8 @@ class Grid
 				array_unshift($item['name'], 'filter');
 			}
 
-			$col .= '<div class="grid-filter-item">' . Field::build($item, $_GET ?? [], []) . '</div>';
+
+			$col .= Field::build($item, $_GET ?? [], []);
 
 			$col .= '</label>';
 
@@ -84,11 +128,11 @@ class Grid
 			$out .= $col;
 
 		}
-		$out .= '</div>';
 
-		$out .= '<p class="grid-filter-action" style="clear: both; text-align: right">';
-		$out .= (new Field('button', ['type' => 'submit'], 'Filtered'))->render();
-		$out .= '</p>';
+		$out .= (new Field('button', ['type' => 'submit', 'class' => 'button'], 'Filter'))->render();
+
+		$out .= '</div>';
+		$out .= '</div>';
 
 		$out .= '</form>';
 
@@ -99,7 +143,9 @@ class Grid
 	function body()
 	{
 		$out = '';
-		foreach ($this->data->toArray()['data'] as $row_i => $data) {
+
+
+		foreach ($this->getData()->toArray()['data'] as $row_i => $data) {
 			$row = '';
 			foreach ($this->structure['cols'] as $col_i => $item) {
 				if (empty($item['col'])) {
@@ -130,7 +176,6 @@ class Grid
 							$content = $item['col'];
 						}
 
-//						$content = ' ' . $content;
 					}
 				}
 
@@ -146,9 +191,11 @@ class Grid
 
 	function paginate()
 	{
-		$name = $this->data->getOptions()['pageName'];
-		$page_id = $this->data->currentPage();
-		for ($i = 1, $count = $this->data->lastPage() + 1; $i < $count; $i++) {
+		$data = $this->getData();
+
+		$name = $data->getOptions()['pageName'];
+		$page_id = $data->currentPage();
+		for ($i = 1, $count = $data->lastPage() + 1; $i < $count; $i++) {
 			$class = 'button' . ($i === $page_id ? ' disabled' : '');
 			?>
 			<a href="<?php echo \WPPluginStart\Helper::urlQuery([$name => $i], [], $_GET ?? []); ?>"
@@ -158,4 +205,51 @@ class Grid
 	}
 
 
+	/**
+	 * @return string|null
+	 */
+	public function getPageNameKey(): ?string
+	{
+		return $this->page_name_key;
+	}
+
+	/**
+	 * @param string|null $page_name_key
+	 */
+	public function setPageNameKey(?string $page_name_key): void
+	{
+		$this->page_name_key = $page_name_key;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getItemsPerPage(): ?int
+	{
+		return $this->items_per_page;
+	}
+
+	/**
+	 * @param int|null $items_per_page
+	 */
+	public function setItemsPerPage(?int $items_per_page): void
+	{
+		$this->items_per_page = $items_per_page;
+	}
+
+	/**
+	 * @return int|mixed
+	 */
+	public function getPageId()
+	{
+		return $this->page_id;
+	}
+
+	/**
+	 * @param int|mixed $page_id
+	 */
+	public function setPageId($page_id): void
+	{
+		$this->page_id = $page_id;
+	}
 }

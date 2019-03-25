@@ -449,10 +449,13 @@ class Field
 
 	/**
 	 * @param string $tag
+	 * @return Field
 	 */
-	public function setTag(string $tag): void
+	public function setTag(string $tag): Field
 	{
 		$this->tag = $tag;
+
+		return $this;
 	}
 
 	/**
@@ -471,14 +474,17 @@ class Field
 	/**
 	 * @param $value
 	 * @param null|string $name
+ 	 * @return Field
 	 */
-	public function setAttr($value, $name = null): void
+	public function setAttr($value, $name = null): Field
 	{
 		if ($name !== null) {
 			$this->attr[$name] = $value;
 		} else {
 			$this->attr = $value;
 		}
+
+		return $this;
 	}
 
 	/**
@@ -497,14 +503,17 @@ class Field
 	/**
 	 * @param $value
 	 * @param null|string $name
+	 * @return Field
 	 */
-	public function setData($value, $name = null): void
+	public function setData($value, $name = null): Field
 	{
 		if ($name !== null) {
 			$this->data[$name] = $value;
 		} else {
 			$this->data = $value;
 		}
+		
+		return $this;
 	}
 
 	/**
