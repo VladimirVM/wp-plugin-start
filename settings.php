@@ -62,69 +62,69 @@ $settings = [
 //		AdminPage::generateItem('Plugin\Admin\Page tools.php sub', 'tools.php'),
 	],
 	'blocks' => [
-		'main_option' => [
-			'type' => 'option',
-			'title' => __('Plugin settings'),
-			'fields' => [
-				[
-					'type' => 'text',
-					'name' => 'field_name',
-					'label' => 'Title',
-					'description' => 'Some information about it field',
-				],
-				[
-					'tag' => 'textarea',
-					'name' => 'field_name_2',
-					'label' => 'Description'
-				],
-				[
-					'type' => 'checkbox',
-					'name' => 'field_name_checkbox',
-					'label' => 'Single checkbox',
-					'attr' => [
-						'value' => 'checkbox',
-					]
-				],
-				[
-					'type' => 'checkbox',
-					'name' => 'field_name_3',
-					'label' => 'Check Me',
-					'items' => [
-						'key_1' => 'Value 1',
-						'key_2' => [
-							'value' => 'value_2',
-							'label' => 'Label 2',
-						],
-						'key_3' => 'value_3:Item : 2',
-					],
-
-				],
-				[
-					'tag' => 'select',
-					'name' => 'field_name_select',
-					'label' => 'Select Me',
-					'items' => [
-						'' => 'Choose Value',
-						'key_1' => 'Select 1',
-						'key_2' => 'Select 2',
-						'key_3' => 'Select 3',
-					],
-
-				],
-				[
-					'tag' => 'select',
-					'name' => 'field_name_select_multiple',
-					'label' => 'Select Me',
-					'items' => [
-						'' => 'Choose Value',
-						'key_1' => 'Select 1',
-						'key_2' => 'Select 2',
-						'key_3' => 'Select 3',
-					],
-					'attr' => ['multiple' => true]
-				],
-			],
-		]
+//		'main_option' => [
+//			'type' => 'option',
+//			'title' => __('Plugin settings'),
+//			'fields' => [
+//				[
+//					'type' => 'text',
+//					'name' => 'field_name',
+//					'label' => 'Title',
+//					'description' => 'Some information about it field',
+//				],
+//				[
+//					'tag' => 'textarea',
+//					'name' => 'field_name_2',
+//					'label' => 'Description'
+//				],
+//				[
+//					'type' => 'checkbox',
+//					'name' => 'field_name_checkbox',
+//					'label' => 'Single checkbox',
+//					'attr' => [
+//						'value' => 'checkbox',
+//					]
+//				],
+//				[
+//					'type' => 'checkbox',
+//					'name' => 'field_name_3',
+//					'label' => 'Check Me',
+//					'items' => [
+//						'key_1' => 'Value 1',
+//						'key_2' => [
+//							'value' => 'value_2',
+//							'label' => 'Label 2',
+//						],
+//						'key_3' => 'value_3:Item : 2',
+//					],
+//
+//				],
+//				[
+//					'tag' => 'select',
+//					'name' => 'field_name_select',
+//					'label' => 'Select Me',
+//					'items' => [
+//						'' => 'Choose Value',
+//						'key_1' => 'Select 1',
+//						'key_2' => 'Select 2',
+//						'key_3' => 'Select 3',
+//					],
+//
+//				],
+//				[
+//					'tag' => 'select',
+//					'name' => 'field_name_select_multiple',
+//					'label' => 'Select Me',
+//					'items' => [
+//						'' => 'Choose Value',
+//						'key_1' => 'Select 1',
+//						'key_2' => 'Select 2',
+//						'key_3' => 'Select 3',
+//					],
+//					'attr' => ['multiple' => true]
+//				],
+//			],
+//		]
 	],
 ];
 

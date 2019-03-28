@@ -179,7 +179,7 @@ class Page
 
 		}
 
-		// add check for current page and save on option page
+		// @todo add check for current page and save on option page
 		add_action('admin_init', [$this, 'build']);
 	}
 

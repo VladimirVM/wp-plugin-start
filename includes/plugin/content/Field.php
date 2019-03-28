@@ -2,8 +2,8 @@
 
 namespace WPPluginStart\Plugin\Content;
 
-use WPPluginStart\plugin\content\field\WPAutoComplete;
-use WPPluginStart\plugin\content\field\WPMediaImage;
+//use WPPluginStart\plugin\content\field\WPAutoComplete;
+//use WPPluginStart\plugin\content\field\WPMediaImage;
 
 class Field
 {
@@ -47,8 +47,8 @@ class Field
 		'select' => true,
 	];
 	static $custom_tags = [
-		'wp-media-image' => WPMediaImage::class,
-		'wp-auto-complete' => WPAutoComplete::class,
+		'wp-media-image' => \WPPluginStart\plugin\content\field\WPMediaImage::class,
+		'wp-auto-complete' => \WPPluginStart\plugin\content\field\WPAutoComplete::class,
 	];
 
 	private $tag = '';
