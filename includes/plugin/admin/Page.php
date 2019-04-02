@@ -59,10 +59,11 @@ class Page
 		if ($this->settings['render'] === null) {
 			$this->settings['render'] = [$this, 'render'];
 		}
+
 		$this->slug = $this->settings['slug'];
 
 		$this->views = [
-			'page/admin/' . $this->settings['slug'] . '/view',
+			'page/admin/' . $this->slug . '/view',
 		];
 
 	}
@@ -115,7 +116,7 @@ class Page
 				}
 
 				$block['plugin_key'] = $this->plugin::$key;
-				
+
 				$this->blocks[] = call_user_func($build, $name, $block, $this, $args);
 
 			}
@@ -151,7 +152,7 @@ class Page
 				$this->settings['page'],
 				$this->settings['menu'],
 				$this->settings['capability'],
-				$this->settings['slug'],
+				$this->slug,
 				$this->settings['render']
 			);
 		} else {
@@ -159,35 +160,52 @@ class Page
 				$this->settings['page'],
 				$this->settings['menu'],
 				$this->settings['capability'],
-				$this->settings['slug'],
+				$this->slug,
 				$this->settings['render'],
 				$this->settings['icon'],
 				$this->settings['position']
 			);
 		}
 
-		static::$hooks[$this->settings['slug']] = $hook;
+		static::$hooks[$this->slug] = $hook;
 
 		if ($this->isLoad()) {
 			$this->media();
 
-			$controller = $this->plugin::component('admin/page/' . $this->settings['slug'] . '/controller');
+			$controller = $this->plugin::component('admin/page/' . $this->slug . '/controller');
 
 			if ($controller) {
 				include $controller;
 			}
 
+			
+			add_action('admin_init', [$this, 'build']);
+
 		}
 
 		// @todo add check for current page and save on option page
-		add_action('admin_init', [$this, 'build']);
+		if (basename($_SERVER['SCRIPT_NAME']) === 'options.php'
+			&& !empty($_GET['wp-plugin-start']['option-uid'])
+			&& substr($_GET['wp-plugin-start']['option-uid'], 0, strlen($this->slug)) === $this->slug
+		) {
+			$parts = explode('/', $_GET['wp-plugin-start']['option-uid'], 3);
+			
+			if (!empty($this->settings['blocks'])
+				&& count($parts) === 3
+				&& (isset($this->settings['blocks'][$parts[1]]) || in_array($parts[1], $this->settings['blocks']))) {
+				add_action('admin_init', function () use ($parts) {
+					register_setting($parts[0], $parts[2]);
+				});
+			}
+		}
+
 	}
 
 	function isLoad()
 	{
 		$page = self::currentKey();
 
-		return ($page === $this->settings['slug']);
+		return ($page === $this->slug);
 	}
 
 	/**

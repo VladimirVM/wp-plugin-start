@@ -324,31 +324,34 @@ class Field
 	}
 
 
-	static function init($page_slug, $key, $data = [])
+	static function init($page_slug, $key, $data = [], $register_only = false )
 	{
 		$section = $data['section'] ?? null;
 		$field = $data['field'];
-
-		$self = Field::wpOptionBuild([
-			'label_for' => $data['id'],
-			'field' => $field,
-			'key' => $key,
-			'section' => $section,
-		]);
-
-		add_settings_field(
-			$data['id'],
-			$field['label'],
-			[$self, 'view'],
-			$page_slug,
-			$key,
-			[
+		
+		if (!$register_only) {
+			$self = Field::wpOptionBuild([
 				'label_for' => $data['id'],
 				'field' => $field,
 				'key' => $key,
 				'section' => $section,
-			]
-		);
+			]);
+
+			add_settings_field(
+				$data['id'],
+				$field['label'],
+				[$self, 'view'],
+				$page_slug,
+				$key,
+				[
+					'label_for' => $data['id'],
+					'field' => $field,
+					'key' => $key,
+					'section' => $section,
+				]
+			);		    
+		}
+
 
 		if (empty($section) || empty($section->name)) {
 			register_setting($page_slug, $field['name'], $section->args);
@@ -387,7 +390,7 @@ class Field
 	}
 
 
-	static function build($field, $value = [], $data = [], $render = true)
+	static function build($field, $values = [], $data = [], $render = true)
 	{
 		$tag = '';
 //		$data = [];
@@ -415,7 +418,7 @@ class Field
 		}
 
 		if (isset(self::$form_tags[$tag]) || !empty($attr['name']) || !empty($field['name'])) {
-
+	
 			if ($section_name) {
 				$name[] = $section_name;
 			}
@@ -429,8 +432,8 @@ class Field
 			$attr['name'] = $name;
 		}
 
-		if (!empty($name) && !empty($value)) {
-			$data['value'] = self::value($name, $value);
+		if (!empty($name) && !empty($values)) {
+			$data['value'] = self::value($name, $values);
 		}
 
 		$tag = new self($tag, $attr, $data);
@@ -493,7 +496,7 @@ class Field
 	/**
 	 * @param string|null $name
 	 * @param null $default
-	 * @return array
+	 * @return mixed
 	 */
 	public function getData(string $name = null, $default = null)
 	{

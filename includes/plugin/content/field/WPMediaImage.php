@@ -74,17 +74,21 @@ class WPMediaImage
 		$data = $field->getData('field', []);
 
 		$image_src = $data['src'] ?? 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D';
-		$image_id = $data['value'] ?? null;
+		$image_id = $field->getData('value', null);
 		$image_width = (int)($data['width'] ?? 50);
 		$image_height = (int)($data['height'] ?? 50);
-		$image_data = wp_get_attachment_image_src($image_id, array($image_width, $image_height));
+		
+		if ($image_id) {
+			$image_data = wp_get_attachment_image_src($image_id, array($image_width, $image_height));
 
-
-		if (!empty($image_data[0])) {
-			$image_src = $image_data[0];
-		} else {
-			$image_id = null;
+			if (!empty($image_data[0])) {
+				$image_src = $image_data[0];
+			} else {
+				$image_id = null;
+			}
 		}
+
+
 
 		$content = '<input type="hidden" name="%2$s" value="%3$s" class="js-media-button-id">
 		<span class="wrap" style="display: inline-block">
@@ -95,7 +99,7 @@ class WPMediaImage
 		</span>
 		</span>';
 
-		$node['content'] = sprintf($content, $image_src, $data['name'] ?? null, $image_id, $image_height . 'px', $image_width . 'px');
+		$node['content'] = sprintf($content, $image_src, Field::name($node['attr']['name']) ?? null, $image_id, $image_height . 'px', $image_width . 'px');
 
 		$node['attr']['class'] = (array)($node['attr']['class'] ?? []);
 		$node['attr']['class'][] = 'media-button-field-container';

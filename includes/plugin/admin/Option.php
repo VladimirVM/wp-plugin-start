@@ -44,7 +44,7 @@ class Option
 			$this->name = $this->plugin_key . '_' . $this->key;
 		}
 		if ($this->uid === null) {
-			$this->uid = $this->plugin_key . '/' . $this->page->slug . '/' . $this->key;
+			$this->uid = $this->page->slug;
 		}
 
 	}
