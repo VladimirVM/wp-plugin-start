@@ -138,6 +138,22 @@ class Field
 			$node['value'] = $node['attr']['value'];
 		}
 
+//		echo '<pre>' . __FILE__ . '(' . __LINE__ . ')';//zzz
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($node['tag']??null, true), 3, 'UTF-8');
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($node['attr']['type']??null, true), 3, 'UTF-8');
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($node['attr']['value']??null, true), 3, 'UTF-8');
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($node['value']??null, true), 3, 'UTF-8');
+//		echo PHP_EOL . '  = ' . htmlspecialchars(var_export($self->data['value']??null, true), 3, 'UTF-8');
+//		echo '</pre>';
+		if (isset($node['attr']['type']) && ($node['attr']['type'] === 'checkbox' || $node['attr']['type'] === 'radio')) {
+		    if (isset($self->data['value']) && isset($node['attr']['value'])) {
+		        if ($self->data['value'] != $node['attr']['value']) {
+					$self->data['value'] = null;
+		        }
+		    }
+		}
+
+
 		$node = self::prepareAttrValue($node, $self->data['value'] ?? null, $self->data['field']['items'] ?? []);
 
 		$attr = self::attr($node['attr']);
@@ -192,7 +208,7 @@ class Field
 				$node['value'] = $parts[0];
 				$node['label'] = $parts[1] ?? $node['value'];
 			}
-
+			
 			$node = self::prepareAttrValue($node, $values[$node['value']] ?? null);
 
 			$node['attr']['name'] = self::name($node['name']);
