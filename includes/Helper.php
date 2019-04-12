@@ -62,7 +62,7 @@ class Helper
 		}
 	}
 
-	static function crateMedia($name, $local = false, $post = [], $allow_ext = ['jpg', 'png', 'gif', 'jpeg'])
+	static function createMedia($name, $local = false, $post = [], $allow_ext = ['jpg', 'png', 'gif', 'jpeg'])
 	{
 
 		$out = null;
